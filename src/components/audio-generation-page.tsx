@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -104,6 +104,18 @@ export function AudioGenerationPage() {
     const [sunoModel, setSunoModel] = useState<'V4' | 'V4_5' | 'V4_5PLUS' | 'V4_5ALL' | 'V5'>('V5');
     const [isGenerating, setIsGenerating] = useState(false);
     const [playingId, setPlayingId] = useState<string | null>(null);
+    const [currentTrack, setCurrentTrack] = useState<{
+        url: string;
+        cover?: string;
+        title: string;
+        genId: string;
+        trackIndex: number;
+    } | null>(null);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const [audioProgress, setAudioProgress] = useState(0);
+    const [audioDuration, setAudioDuration] = useState(0);
+    const [volume, setVolume] = useState(0.7);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
     const [showLyrics, setShowLyrics] = useState(true);
     const [showAdvanced, setShowAdvanced] = useState(false);
     const [weirdness, setWeirdness] = useState([50]);
@@ -165,7 +177,7 @@ export function AudioGenerationPage() {
 
     const handleGenerate = async (overridePrompt?: string) => {
         const currentPrompt = overridePrompt || prompt;
-        if (!currentPrompt.trim()) return;
+        if (!currentPrompt.trim() && !lyrics.trim()) return;
 
         setIsGenerating(true);
         if (window.innerWidth < 1024) {
@@ -173,12 +185,15 @@ export function AudioGenerationPage() {
         }
 
         try {
+            // When custom_mode is true (lyrics provided), prompt should be the lyrics
+            // and style should be the style/genre description
+            const hasLyrics = lyrics.trim().length > 0;
             const generationId = await generateAudioSuno({
-                prompt: currentPrompt,
+                prompt: hasLyrics ? lyrics : currentPrompt, // lyrics go in prompt when custom_mode
                 model: sunoModel,
-                custom_mode: !!lyrics,
+                custom_mode: hasLyrics,
                 instrumental: instrumental,
-                style: currentPrompt,
+                style: hasLyrics ? currentPrompt : undefined, // style/genre when using lyrics
                 title: songTitle || undefined,
                 style_weight: weirdness[0] / 100,
             });
@@ -200,6 +215,162 @@ export function AudioGenerationPage() {
             setIsGenerating(false);
         }
     };
+
+    // Helper function to extract audio tracks with covers from result_assets
+    const getAudioTracks = (gen: Generation) => {
+        if (!gen.result_assets || gen.result_assets.length === 0) return [];
+
+        const tracks: { url: string; cover?: string; index: number }[] = [];
+        const assets = gen.result_assets;
+
+        // Pattern: audio, cover, audio, cover
+        for (let i = 0; i < assets.length; i++) {
+            const asset = assets[i];
+            if (
+                asset.mime?.startsWith('audio/') ||
+                asset.url?.endsWith('.bin') ||
+                asset.url?.endsWith('.mp3')
+            ) {
+                const coverAsset = assets[i + 1];
+                const cover = coverAsset?.mime?.startsWith('image/') ? coverAsset.url : undefined;
+                tracks.push({
+                    url: asset.url,
+                    cover,
+                    index: tracks.length,
+                });
+            }
+        }
+
+        return tracks;
+    };
+
+    // Play a specific track
+    const playTrack = (gen: Generation, trackIndex: number) => {
+        const tracks = getAudioTracks(gen);
+        const track = tracks[trackIndex];
+        if (!track) return;
+
+        const title = (gen as any).input?.title || gen.prompt?.slice(0, 30) || 'Untitled';
+
+        setCurrentTrack({
+            url: track.url,
+            cover: track.cover,
+            title: `${title} (Track ${trackIndex + 1})`,
+            genId: gen.id,
+            trackIndex,
+        });
+        setIsPlaying(true);
+    };
+
+    // Toggle play/pause
+    const togglePlayPause = () => {
+        if (!audioRef.current) return;
+        if (isPlaying) {
+            audioRef.current.pause();
+        } else {
+            audioRef.current.play();
+        }
+        setIsPlaying(!isPlaying);
+    };
+
+    // Handle audio time update
+    const handleTimeUpdate = () => {
+        if (audioRef.current) {
+            setAudioProgress(audioRef.current.currentTime);
+        }
+    };
+
+    // Handle audio loaded metadata
+    const handleLoadedMetadata = () => {
+        if (audioRef.current) {
+            setAudioDuration(audioRef.current.duration);
+        }
+    };
+
+    // Seek to position
+    const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!audioRef.current || !audioDuration) return;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audioRef.current.currentTime = percent * audioDuration;
+    };
+
+    // Handle volume change
+    const handleVolumeChange = (e: React.MouseEvent<HTMLDivElement>) => {
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+        setVolume(percent);
+        if (audioRef.current) {
+            audioRef.current.volume = percent;
+        }
+    };
+
+    // Play next/previous track
+    const playNextTrack = () => {
+        if (!currentTrack) return;
+        const gen = audioGenerations.find((g) => g.id === currentTrack.genId);
+        if (!gen) return;
+
+        const tracks = getAudioTracks(gen);
+        if (currentTrack.trackIndex < tracks.length - 1) {
+            playTrack(gen, currentTrack.trackIndex + 1);
+        } else {
+            // Play first track of next generation
+            const currentIndex = audioGenerations.findIndex((g) => g.id === currentTrack.genId);
+            if (currentIndex < audioGenerations.length - 1) {
+                const nextGen = audioGenerations[currentIndex + 1];
+                if (nextGen.status === 'success') {
+                    playTrack(nextGen, 0);
+                }
+            }
+        }
+    };
+
+    const playPrevTrack = () => {
+        if (!currentTrack) return;
+        const gen = audioGenerations.find((g) => g.id === currentTrack.genId);
+        if (!gen) return;
+
+        if (currentTrack.trackIndex > 0) {
+            playTrack(gen, currentTrack.trackIndex - 1);
+        } else {
+            // Play last track of previous generation
+            const currentIndex = audioGenerations.findIndex((g) => g.id === currentTrack.genId);
+            if (currentIndex > 0) {
+                const prevGen = audioGenerations[currentIndex - 1];
+                if (prevGen.status === 'success') {
+                    const tracks = getAudioTracks(prevGen);
+                    playTrack(prevGen, tracks.length - 1);
+                }
+            }
+        }
+    };
+
+    // Format time for display
+    const formatDuration = (seconds: number) => {
+        if (!seconds || isNaN(seconds)) return '0:00';
+        const mins = Math.floor(seconds / 60);
+        const secs = Math.floor(seconds % 60);
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
+    };
+
+    // Effect to handle audio element
+    useEffect(() => {
+        if (currentTrack && audioRef.current) {
+            audioRef.current.src = currentTrack.url;
+            audioRef.current.volume = volume;
+            if (isPlaying) {
+                audioRef.current.play().catch(console.error);
+            }
+        }
+    }, [currentTrack?.url]);
+
+    // Effect for playback speed
+    useEffect(() => {
+        if (audioRef.current) {
+            audioRef.current.playbackRate = playbackSpeed;
+        }
+    }, [playbackSpeed]);
 
     const generateLyrics = () => {
         setLyrics(
@@ -487,102 +658,176 @@ export function AudioGenerationPage() {
 
                             <AnimatePresence mode="popLayout">
                                 {audioGenerations.map((gen) => {
-                                    const audioUrl = gen.result_assets?.[0]?.url;
                                     const isProcessing =
                                         gen.status === 'processing' || gen.status === 'queued';
+                                    const tracks = getAudioTracks(gen);
+                                    const genTitle =
+                                        (gen as any).input?.title ||
+                                        gen.prompt?.slice(0, 30) ||
+                                        'Untitled';
 
-                                    return (
-                                        <motion.div
-                                            key={gen.id}
-                                            layout
-                                            initial={{ opacity: 0, y: 20 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            className="h-[100px] rounded-[20px] bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] hover:border-white/10 transition-all flex items-center px-6 gap-6 group relative"
-                                        >
-                                            {/* Thumbnail / Status */}
-                                            <div className="relative w-[68px] h-[68px] shrink-0 rounded-xl overflow-hidden group/thumb cursor-pointer bg-white/5 flex items-center justify-center">
-                                                {isProcessing ? (
-                                                    <Loader2 className="w-6 h-6 animate-spin text-[#6F00FF]" />
-                                                ) : gen.status === 'failed' ? (
-                                                    <X className="w-6 h-6 text-red-500" />
-                                                ) : (
-                                                    <>
+                                    // Show loading/error state
+                                    if (isProcessing || gen.status === 'failed') {
+                                        return (
+                                            <motion.div
+                                                key={gen.id}
+                                                layout
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className="h-[100px] rounded-[20px] bg-white/[0.02] border border-white/5 flex items-center px-6 gap-6 relative"
+                                            >
+                                                <div className="relative w-[68px] h-[68px] shrink-0 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center">
+                                                    {isProcessing ? (
+                                                        <Loader2 className="w-6 h-6 animate-spin text-[#6F00FF]" />
+                                                    ) : (
+                                                        <X className="w-6 h-6 text-red-500" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-sm font-bold truncate mb-1">
+                                                        {isProcessing
+                                                            ? language === 'ru'
+                                                                ? 'Генерация...'
+                                                                : 'Generating...'
+                                                            : language === 'ru'
+                                                            ? 'Ошибка'
+                                                            : 'Failed'}
+                                                    </h3>
+                                                    <p className="text-[11px] text-white/40 font-medium truncate">
+                                                        {gen.model} •{' '}
+                                                        {new Date(
+                                                            gen.created_at
+                                                        ).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    }
+
+                                    // Render each track separately with its cover
+                                    return tracks.map((track, trackIdx) => {
+                                        const isCurrentTrack =
+                                            currentTrack?.genId === gen.id &&
+                                            currentTrack?.trackIndex === trackIdx;
+
+                                        return (
+                                            <motion.div
+                                                key={`${gen.id}-track-${trackIdx}`}
+                                                layout
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                className={`h-[100px] rounded-[20px] border transition-all flex items-center px-6 gap-6 group relative cursor-pointer ${
+                                                    isCurrentTrack
+                                                        ? 'bg-[#6F00FF]/10 border-[#6F00FF]/30'
+                                                        : 'bg-white/[0.02] border-white/5 hover:bg-white/[0.04] hover:border-white/10'
+                                                }`}
+                                                onClick={() => playTrack(gen, trackIdx)}
+                                            >
+                                                {/* Thumbnail with Cover */}
+                                                <div className="relative w-[68px] h-[68px] shrink-0 rounded-xl overflow-hidden group/thumb bg-white/5 flex items-center justify-center">
+                                                    {track.cover ? (
+                                                        <img
+                                                            src={track.cover}
+                                                            alt={`${genTitle} Track ${
+                                                                trackIdx + 1
+                                                            }`}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
                                                         <Music className="w-6 h-6 text-[#6F00FF]" />
-                                                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition-opacity">
+                                                    )}
+                                                    <div
+                                                        className={`absolute inset-0 bg-black/40 flex items-center justify-center transition-opacity ${
+                                                            isCurrentTrack && isPlaying
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0 group-hover/thumb:opacity-100'
+                                                        }`}
+                                                    >
+                                                        {isCurrentTrack && isPlaying ? (
+                                                            <Pause className="w-6 h-6 fill-white" />
+                                                        ) : (
                                                             <Play className="w-6 h-6 fill-white" />
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
 
-                                            {/* Info */}
-                                            <div className="flex-1 min-w-0 pr-10">
-                                                <h3 className="text-sm font-bold truncate mb-1">
-                                                    {isProcessing
-                                                        ? language === 'ru'
-                                                            ? 'Генерация...'
-                                                            : 'Generating...'
-                                                        : gen.prompt.slice(0, 30)}
-                                                </h3>
-                                                <p className="text-[11px] text-white font-medium truncate">
-                                                    {gen.model} •{' '}
-                                                    {new Date(gen.created_at).toLocaleDateString()}
-                                                </p>
-                                            </div>
+                                                {/* Info */}
+                                                <div className="flex-1 min-w-0 pr-10">
+                                                    <h3 className="text-sm font-bold truncate mb-1">
+                                                        {genTitle}{' '}
+                                                        {tracks.length > 1
+                                                            ? `(Track ${trackIdx + 1})`
+                                                            : ''}
+                                                    </h3>
+                                                    <p className="text-[11px] text-white/40 font-medium truncate">
+                                                        {gen.model} •{' '}
+                                                        {new Date(
+                                                            gen.created_at
+                                                        ).toLocaleDateString()}
+                                                    </p>
+                                                </div>
 
-                                            {/* Action Bar (Icons) */}
-                                            {!isProcessing && gen.status === 'success' && (
+                                                {/* Action Bar (Icons) */}
                                                 <div className="hidden sm:flex items-center gap-1 lg:gap-3">
-                                                    <button className="p-2 text-white/20 hover:text-white transition-colors">
+                                                    <button
+                                                        className="p-2 text-white/20 hover:text-white transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
                                                         <ThumbsUp className="w-4 h-4" />
                                                     </button>
-                                                    <button className="p-2 text-white/20 hover:text-[#6F00FF] transition-colors">
+                                                    <button
+                                                        className="p-2 text-white/20 hover:text-[#6F00FF] transition-colors"
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
                                                         <Heart className="w-4 h-4" />
                                                     </button>
                                                     <button
-                                                        onClick={() =>
-                                                            audioUrl &&
-                                                            window.open(audioUrl, '_blank')
-                                                        }
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            window.open(track.url, '_blank');
+                                                        }}
                                                         className="p-2 text-white/20 hover:text-white transition-colors"
                                                     >
                                                         <Download className="w-4 h-4" />
                                                     </button>
                                                 </div>
-                                            )}
 
-                                            {/* More Menu */}
-                                            <div className="absolute right-6 top-1/2 -translate-y-1/2">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
-                                                        <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                                                            <MoreHorizontal className="w-5 h-5 text-white/20" />
-                                                        </button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent
-                                                        align="end"
-                                                        className="bg-[#111] border-white/5 rounded-xl font-mono"
-                                                    >
-                                                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
-                                                            {language === 'ru'
-                                                                ? 'Переименовать'
-                                                                : 'Rename'}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
-                                                            {language === 'ru'
-                                                                ? 'Продолжить'
-                                                                : 'Extend'}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 text-red-500">
-                                                            {language === 'ru'
-                                                                ? 'Удалить'
-                                                                : 'Delete'}
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </div>
-                                        </motion.div>
-                                    );
+                                                {/* More Menu */}
+                                                <div
+                                                    className="absolute right-6 top-1/2 -translate-y-1/2"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
+                                                                <MoreHorizontal className="w-5 h-5 text-white/20" />
+                                                            </button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent
+                                                            align="end"
+                                                            className="bg-[#111] border-white/5 rounded-xl font-mono"
+                                                        >
+                                                            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
+                                                                {language === 'ru'
+                                                                    ? 'Переименовать'
+                                                                    : 'Rename'}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
+                                                                {language === 'ru'
+                                                                    ? 'Продолжить'
+                                                                    : 'Extend'}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 text-red-500">
+                                                                {language === 'ru'
+                                                                    ? 'Удалить'
+                                                                    : 'Delete'}
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </motion.div>
+                                        );
+                                    });
                                 })}
                             </AnimatePresence>
                         </div>
@@ -590,32 +835,71 @@ export function AudioGenerationPage() {
                 </main>
             </div>
 
+            {/* Hidden Audio Element */}
+            <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={playNextTrack}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+            />
+
             {/* Bottom Audio Player - Full Width */}
             <footer className="fixed bottom-16 lg:bottom-0 left-0 right-0 h-[100px] lg:h-[110px] bg-[#0A0A0A]/95 backdrop-blur-2xl border-t border-white/5 flex flex-col z-50">
                 {/* Progress Bar - Minimalist (Absolute top) */}
-                <div className="absolute top-0 left-0 right-0 h-1 bg-white/5 cursor-pointer group z-10">
+                <div
+                    className="absolute top-0 left-0 right-0 h-1 bg-white/5 cursor-pointer group z-10"
+                    onClick={handleSeek}
+                >
                     <div
                         className="h-full bg-[#6F00FF] group-hover:bg-[#8B33FF] transition-all"
-                        style={{ width: '33%' }}
+                        style={{
+                            width: audioDuration
+                                ? `${(audioProgress / audioDuration) * 100}%`
+                                : '0%',
+                        }}
                     />
-                    <div className="absolute top-1/2 left-[33%] w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 scale-0 group-hover:scale-100 transition-transform shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                    <div
+                        className="absolute top-1/2 w-3 h-3 bg-white rounded-full -translate-x-1/2 -translate-y-1/2 scale-0 group-hover:scale-100 transition-transform shadow-[0_0_10px_rgba(255,255,255,0.5)]"
+                        style={{
+                            left: audioDuration
+                                ? `${(audioProgress / audioDuration) * 100}%`
+                                : '0%',
+                        }}
+                    />
                 </div>
 
                 {/* Controls Row */}
                 <div className="flex-1 px-4 lg:px-8 py-3 flex items-center justify-between gap-4 lg:gap-8">
                     {/* Left: Info & Playback Speed (minimalist) */}
                     <div className="flex items-center gap-3 lg:gap-4 flex-1 min-w-0">
-                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 shrink-0">
-                            <Music className="w-5 h-5 lg:w-6 lg:h-6 text-white/20" />
+                        <div className="w-10 h-10 lg:w-12 lg:h-12 rounded-xl bg-white/5 flex items-center justify-center border border-white/5 shrink-0 overflow-hidden">
+                            {currentTrack?.cover ? (
+                                <img
+                                    src={currentTrack.cover}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <Music className="w-5 h-5 lg:w-6 lg:h-6 text-white/20" />
+                            )}
                         </div>
                         <div className="min-w-0 flex-1">
                             <h4 className="text-xs lg:text-sm font-bold truncate">
-                                {language === 'ru'
-                                    ? 'Ничего не воспроизводится'
-                                    : 'Nothing playing'}
+                                {currentTrack?.title ||
+                                    (language === 'ru'
+                                        ? 'Ничего не воспроизводится'
+                                        : 'Nothing playing')}
                             </h4>
                             <p className="text-[10px] font-bold text-white/20 uppercase tracking-widest truncate">
-                                {language === 'ru' ? 'Выберите трек' : 'Select a track'}
+                                {currentTrack
+                                    ? `${formatDuration(audioProgress)} / ${formatDuration(
+                                          audioDuration
+                                      )}`
+                                    : language === 'ru'
+                                    ? 'Выберите трек'
+                                    : 'Select a track'}
                             </p>
                         </div>
 
@@ -635,7 +919,11 @@ export function AudioGenerationPage() {
                                     <DropdownMenuItem
                                         key={speed}
                                         onClick={() => setPlaybackSpeed(speed)}
-                                        className="text-[10px] font-bold p-2 rounded-lg focus:bg-[#6F00FF] cursor-pointer"
+                                        className={`text-[10px] font-bold p-2 rounded-lg cursor-pointer ${
+                                            playbackSpeed === speed
+                                                ? 'bg-[#6F00FF]'
+                                                : 'focus:bg-[#6F00FF]'
+                                        }`}
                                     >
                                         {speed}x
                                     </DropdownMenuItem>
@@ -650,13 +938,27 @@ export function AudioGenerationPage() {
                             <Shuffle className="w-4 h-4" />
                         </button>
                         <div className="flex items-center gap-4 lg:gap-6">
-                            <button className="text-white/40 hover:text-white transition-colors">
+                            <button
+                                onClick={playPrevTrack}
+                                className="text-white/40 hover:text-white transition-colors"
+                            >
                                 <SkipBack className="w-5 h-5 fill-current" />
                             </button>
-                            <button className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)]">
-                                <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
+                            <button
+                                onClick={togglePlayPause}
+                                disabled={!currentTrack}
+                                className="w-10 h-10 lg:w-12 lg:h-12 rounded-full bg-white text-black flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,255,255,0.2)] disabled:opacity-50"
+                            >
+                                {isPlaying ? (
+                                    <Pause className="w-5 h-5 lg:w-6 lg:h-6 fill-current" />
+                                ) : (
+                                    <Play className="w-5 h-5 lg:w-6 lg:h-6 fill-current ml-0.5" />
+                                )}
                             </button>
-                            <button className="text-white/40 hover:text-white transition-colors">
+                            <button
+                                onClick={playNextTrack}
+                                className="text-white/40 hover:text-white transition-colors"
+                            >
                                 <SkipForward className="w-5 h-5 fill-current" />
                             </button>
                         </div>
@@ -669,8 +971,14 @@ export function AudioGenerationPage() {
                     <div className="hidden lg:flex items-center justify-end gap-6 flex-1">
                         <div className="flex items-center gap-3 group">
                             <Volume2 className="w-4 h-4 text-white/30 group-hover:text-white transition-colors" />
-                            <div className="w-24 h-1 bg-white/5 rounded-full relative overflow-hidden cursor-pointer">
-                                <div className="absolute inset-y-0 left-0 w-2/3 bg-white/20 group-hover:bg-[#6F00FF] transition-all" />
+                            <div
+                                className="w-24 h-1 bg-white/5 rounded-full relative overflow-hidden cursor-pointer"
+                                onClick={handleVolumeChange}
+                            >
+                                <div
+                                    className="absolute inset-y-0 left-0 bg-white/20 group-hover:bg-[#6F00FF] transition-all"
+                                    style={{ width: `${volume * 100}%` }}
+                                />
                             </div>
                         </div>
                     </div>

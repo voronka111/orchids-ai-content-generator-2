@@ -64,15 +64,8 @@ export function VideoGenerationPage() {
 
     // Stores
     const { videoModels, fetchModels } = useModelsStore();
-    const {
-        generations,
-        generateVideoKling,
-        generateVideoKlingI2V,
-        generateVideoWan,
-        uploadImage,
-        fetchHistory,
-        activePolling,
-    } = useGenerationStore();
+    const { generations, generateVideoGeneric, uploadImage, fetchHistory, activePolling } =
+        useGenerationStore();
 
     // Local state
     const [prompt, setPrompt] = useState('');
@@ -199,8 +192,6 @@ export function VideoGenerationPage() {
         setIsGenerating(true);
 
         try {
-            let generationId: string | null = null;
-
             // Upload images if present (for image-to-video)
             const uploadedUrls: string[] = [];
             if (uploadedImages.length > 0) {
@@ -215,40 +206,14 @@ export function VideoGenerationPage() {
                 }
             }
 
-            // Route to correct generation endpoint based on model
-            const modelId = selectedModel.id.toLowerCase();
-
-            if (modelId.includes('kling')) {
-                if (uploadedUrls.length > 0) {
-                    generationId = await generateVideoKlingI2V({
-                        prompt: currentPrompt,
-                        image_urls: uploadedUrls,
-                        duration: duration as '5' | '10',
-                        sound: sound,
-                    });
-                } else {
-                    generationId = await generateVideoKling({
-                        prompt: currentPrompt,
-                        aspect_ratio: aspectRatio as '1:1' | '16:9' | '9:16',
-                        duration: duration as '5' | '10',
-                        sound: sound,
-                    });
-                }
-            } else if (modelId.includes('wan')) {
-                generationId = await generateVideoWan({
-                    prompt: currentPrompt,
-                    duration: duration as '5' | '10' | '15',
-                    resolution: '1080p',
-                });
-            } else {
-                // Default to Kling
-                generationId = await generateVideoKling({
-                    prompt: currentPrompt,
-                    aspect_ratio: aspectRatio as '1:1' | '16:9' | '9:16',
-                    duration: duration as '5' | '10',
-                    sound: sound,
-                });
-            }
+            // Use the generic method that properly maps model ID to endpoint
+            const generationId = await generateVideoGeneric(selectedModel.id, {
+                prompt: currentPrompt,
+                aspect_ratio: aspectRatio,
+                duration: parseInt(duration),
+                image_urls: uploadedUrls.length > 0 ? uploadedUrls : undefined,
+                sound: sound,
+            });
 
             if (generationId) {
                 toast.success(language === 'ru' ? 'Генерация запущена' : 'Generation started');

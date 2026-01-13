@@ -51,11 +51,22 @@ interface GenerationState {
     generateImageImagen4Ultra: (params: Imagen4Params) => Promise<string | null>;
     generateImageSeedream: (params: SeedreamParams) => Promise<string | null>;
     generateImageNanoBanana: (params: NanoBananaParams) => Promise<string | null>;
+    generateImageGrokImagine: (params: GrokImagineParams) => Promise<string | null>;
+    generateImageFluxKontext: (params: FluxKontextParams) => Promise<string | null>;
+    generateImageGPT4o: (params: GPT4oImageParams) => Promise<string | null>;
+    generateImageIdeogram: (params: IdeogramParams) => Promise<string | null>;
+    generateImageQwen: (params: QwenImageParams) => Promise<string | null>;
+    generateImageGeneric: (modelId: string, params: GenericImageParams) => Promise<string | null>;
 
     // Generation methods - Video
     generateVideoKling: (params: KlingTextToVideoParams) => Promise<string | null>;
     generateVideoKlingI2V: (params: KlingImageToVideoParams) => Promise<string | null>;
     generateVideoWan: (params: WanParams) => Promise<string | null>;
+    generateVideoVeo: (params: VeoParams) => Promise<string | null>;
+    generateVideoSora: (params: SoraParams) => Promise<string | null>;
+    generateVideoRunway: (params: RunwayParams) => Promise<string | null>;
+    generateVideoSeedance: (params: SeedanceParams) => Promise<string | null>;
+    generateVideoGeneric: (modelId: string, params: GenericVideoParams) => Promise<string | null>;
 
     // Generation methods - Audio
     generateAudioSuno: (params: SunoParams) => Promise<string | null>;
@@ -95,6 +106,42 @@ export interface NanoBananaParams {
     aspect_ratio?: '1:1' | '4:3' | '3:4' | '16:9' | '9:16';
 }
 
+export interface GrokImagineParams {
+    prompt: string;
+    aspect_ratio?: '1:1' | '16:9' | '9:16';
+}
+
+export interface FluxKontextParams {
+    prompt: string;
+    aspect_ratio?: string;
+    input_urls?: string[];
+}
+
+export interface GPT4oImageParams {
+    prompt: string;
+    aspect_ratio?: string;
+    input_urls?: string[];
+}
+
+export interface IdeogramParams {
+    prompt: string;
+    aspect_ratio?: string;
+    input_urls?: string[];
+}
+
+export interface QwenImageParams {
+    prompt: string;
+    aspect_ratio?: string;
+    input_urls?: string[];
+}
+
+export interface GenericImageParams {
+    prompt: string;
+    aspect_ratio?: string;
+    input_urls?: string[];
+    [key: string]: any;
+}
+
 export interface KlingTextToVideoParams {
     prompt: string;
     aspect_ratio: '1:1' | '16:9' | '9:16';
@@ -113,6 +160,46 @@ export interface WanParams {
     prompt: string;
     duration?: '5' | '10' | '15';
     resolution?: '720p' | '1080p';
+    image_urls?: string[];
+}
+
+export interface VeoParams {
+    prompt: string;
+    aspect_ratio?: string;
+    image_urls?: string[];
+}
+
+export interface SoraParams {
+    prompt: string;
+    aspect_ratio?: string;
+    duration?: number;
+    image_urls?: string[];
+}
+
+export interface RunwayParams {
+    prompt: string;
+    aspect_ratio?: string;
+    duration?: number;
+    resolution?: string;
+    image_urls?: string[];
+}
+
+export interface SeedanceParams {
+    prompt: string;
+    aspect_ratio?: string;
+    duration?: number;
+    resolution?: string;
+    generate_audio?: boolean;
+    image_urls?: string[];
+}
+
+export interface GenericVideoParams {
+    prompt: string;
+    aspect_ratio?: string;
+    duration?: number;
+    resolution?: string;
+    image_urls?: string[];
+    [key: string]: any;
 }
 
 export interface SunoParams {
@@ -473,6 +560,252 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
         }
     },
 
+    generateImageGrokImagine: async (params) => {
+        set({ error: null });
+        try {
+            const { data, error } = await api.POST('/image/grok-imagine/text-to-image', {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'grok-imagine',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateImageFluxKontext: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.input_urls?.length
+                ? '/image/flux-kontext/edit'
+                : '/image/flux-kontext/generate';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'flux-kontext',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateImageGPT4o: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.input_urls?.length
+                ? '/image/gpt4o/edit'
+                : '/image/gpt4o/generate';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'gpt4o-image',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateImageIdeogram: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.input_urls?.length
+                ? '/image/ideogram/character-remix'
+                : '/image/ideogram/character';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'ideogram',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateImageQwen: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.input_urls?.length
+                ? '/image/qwen/image-to-image'
+                : '/image/qwen/text-to-image';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'qwen',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    // Generic image generation that maps model ID to correct endpoint
+    generateImageGeneric: async (modelId: string, params) => {
+        set({ error: null });
+
+        // Model ID to endpoint mapping
+        const modelEndpointMap: Record<string, string> = {
+            'flux-kontext': params.input_urls?.length
+                ? '/image/flux-kontext/edit'
+                : '/image/flux-kontext/generate',
+            'gpt4o-image': params.input_urls?.length
+                ? '/image/gpt4o/edit'
+                : '/image/gpt4o/generate',
+            'flux2-flex-t2i': '/image/flux-2/text-to-image',
+            'flux2-flex-i2i': '/image/flux-2/image-to-image',
+            'flux2-pro-t2i': '/image/flux-2/text-to-image',
+            'flux2-pro-i2i': '/image/flux-2/image-to-image',
+            'imagen4-fast': '/image/imagen4/fast',
+            'imagen4-ultra': '/image/imagen4/ultra',
+            'nano-banana': '/image/nano-banana/generate',
+            'nano-banana-pro': '/image/nano-banana/generate',
+            'nano-banana-edit': '/image/nano-banana/generate',
+            'nano-banana-pro-i2i': '/image/nano-banana/generate',
+            'seedream-4': '/image/seedream/text-to-image',
+            'seedream-4-5': '/image/seedream/text-to-image',
+            'ideogram-character': '/image/ideogram/character',
+            'ideogram-character-remix': '/image/ideogram/character-remix',
+            'ideogram-v3-reframe': '/image/ideogram/reframe',
+            'qwen-t2i': '/image/qwen/text-to-image',
+            'qwen-i2i': '/image/qwen/image-to-image',
+            'qwen-edit': '/image/qwen/edit',
+            'grok-imagine-t2i': '/image/grok-imagine/text-to-image',
+            'z-image': '/image/flux-2/text-to-image', // fallback
+            'gpt-image-1-5-t2i': '/image/gpt4o/generate',
+            'gpt-image-1-5-i2i': '/image/gpt4o/edit',
+        };
+
+        const endpoint = modelEndpointMap[modelId] || '/image/flux-2/text-to-image';
+
+        try {
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: modelId,
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
     // Video generation methods
     generateVideoKling: async (params) => {
         set({ error: null });
@@ -543,7 +876,10 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
     generateVideoWan: async (params) => {
         set({ error: null });
         try {
-            const { data, error } = await api.POST('/video/wan/text-to-video', {
+            const endpoint = params.image_urls?.length
+                ? '/video/wan/image-to-video'
+                : '/video/wan/text-to-video';
+            const { data, error } = await api.POST(endpoint as any, {
                 body: params,
             });
 
@@ -557,6 +893,222 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                 id: genData.id,
                 type: 'video',
                 model: 'wan',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateVideoVeo: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.image_urls?.length
+                ? '/video/veo/image-to-video'
+                : '/video/veo/text-to-video';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'video',
+                model: 'veo3',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateVideoSora: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.image_urls?.length
+                ? '/video/sora-2/image-to-video'
+                : '/video/sora-2/text-to-video';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'video',
+                model: 'sora2',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateVideoRunway: async (params) => {
+        set({ error: null });
+        try {
+            const endpoint = params.image_urls?.length
+                ? '/video/runway/image-to-video'
+                : '/video/runway/text-to-video';
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'video',
+                model: 'runway-gen3',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    generateVideoSeedance: async (params) => {
+        set({ error: null });
+        try {
+            const { data, error } = await api.POST('/video/seedance/generate', {
+                body: {
+                    ...params,
+                    aspect_ratio: params.aspect_ratio || '16:9',
+                } as any,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'video',
+                model: 'seedance-pro',
+                status: 'processing',
+                prompt: params.prompt,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Generation error' });
+            return null;
+        }
+    },
+
+    // Generic video generation that maps model ID to correct endpoint
+    generateVideoGeneric: async (modelId: string, params) => {
+        set({ error: null });
+
+        const hasImages = params.image_urls?.length;
+
+        // Model ID to endpoint mapping
+        const modelEndpointMap: Record<string, string> = {
+            veo3: hasImages ? '/video/veo/image-to-video' : '/video/veo/text-to-video',
+            'veo3-fast': hasImages ? '/video/veo/image-to-video' : '/video/veo/text-to-video',
+            'runway-gen3': '/video/runway/text-to-video',
+            'runway-gen3-i2v': '/video/runway/image-to-video',
+            'runway-aleph': '/video/runway/video-to-video',
+            'luma-modify': '/video/luma/modify',
+            'sora2-t2v': '/video/sora-2/text-to-video',
+            'sora2-i2v': '/video/sora-2/image-to-video',
+            'sora2-characters': '/video/sora-2/image-to-video',
+            'kling-t2v': '/video/kling/text-to-video',
+            'kling-i2v': '/video/kling/image-to-video',
+            'seedance-pro': '/video/seedance/generate',
+            'seedance-pro-i2v': '/video/seedance/generate',
+            'bytedance-v1-pro-t2v': '/video/bytedance/v1-pro-t2v',
+            'bytedance-v1-lite-t2v': '/video/bytedance/v1-lite-t2v',
+            'bytedance-pro-fast-i2v': '/video/bytedance/v1-pro-fast-i2v',
+            'bytedance-pro-i2v': '/video/bytedance/v1-pro-i2v',
+            'bytedance-lite-i2v': '/video/bytedance/v1-lite-i2v',
+            'hailuo-i2v-standard': '/video/hailuo/image-to-video-standard',
+            'hailuo-i2v-pro': '/video/hailuo/image-to-video-pro',
+            'wan-t2v': '/video/wan/text-to-video',
+            'wan-i2v': '/video/wan/image-to-video',
+            'wan-v2v': '/video/wan/video-to-video',
+            'wan-animate-move': '/video/wan/image-to-video',
+            'wan-animate-replace': '/video/wan/image-to-video',
+            'grok-imagine-t2v': '/video/grok-imagine/text-to-video',
+            'grok-imagine-i2v': '/video/grok-imagine/image-to-video',
+        };
+
+        const endpoint =
+            modelEndpointMap[modelId] ||
+            (hasImages ? '/video/kling/image-to-video' : '/video/kling/text-to-video');
+
+        try {
+            const { data, error } = await api.POST(endpoint as any, {
+                body: params,
+            });
+
+            if (error || !data) {
+                set({ error: 'Generation failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'video',
+                model: modelId,
                 status: 'processing',
                 prompt: params.prompt,
                 cost_credits: genData.cost_credits,

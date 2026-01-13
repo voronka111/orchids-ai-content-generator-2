@@ -22,9 +22,9 @@ import {
     Play,
     ChevronUp,
     ChevronDown,
-    Wand2
-} from "lucide-react";
-import { DiamondIcon } from "@/components/ui/diamond-icon";
+    Wand2,
+} from 'lucide-react';
+import { DiamondIcon } from '@/components/ui/diamond-icon';
 
 import Link from 'next/link';
 import { useLanguage } from '@/lib/language-context';
@@ -63,18 +63,8 @@ export function ImageGenerationPage() {
 
     // Stores
     const { imageModels, fetchModels, isLoading: modelsLoading } = useModelsStore();
-    const {
-        generations,
-        generateImageFlux2,
-        generateImageFlux2I2I,
-        generateImageImagen4Fast,
-        generateImageImagen4Ultra,
-        generateImageSeedream,
-        generateImageNanoBanana,
-        uploadImage,
-        fetchHistory,
-        activePolling,
-    } = useGenerationStore();
+    const { generations, generateImageGeneric, uploadImage, fetchHistory, activePolling } =
+        useGenerationStore();
     const { user } = useAuthStore();
 
     // Local state
@@ -205,8 +195,6 @@ export function ImageGenerationPage() {
         setIsGenerating(true);
 
         try {
-            let generationId: string | null = null;
-
             // Upload images if present (for image-to-image)
             const uploadedUrls: string[] = [];
             if (uploadedImages.length > 0) {
@@ -218,86 +206,13 @@ export function ImageGenerationPage() {
                 }
             }
 
-            // Route to correct generation endpoint based on model
-            const modelId = selectedModel.id.toLowerCase();
-
-            if (modelId.includes('flux-2') || modelId.includes('flux2')) {
-                if (uploadedUrls.length > 0) {
-                    generationId = await generateImageFlux2I2I({
-                        prompt: currentPrompt,
-                        input_urls: uploadedUrls,
-                        aspect_ratio: aspectRatio as
-                            | '1:1'
-                            | '4:3'
-                            | '3:4'
-                            | '16:9'
-                            | '9:16'
-                            | '3:2'
-                            | '2:3'
-                            | 'auto',
-                        resolution: resolution as '1K' | '2K',
-                    });
-                } else {
-                    generationId = await generateImageFlux2({
-                        prompt: currentPrompt,
-                        aspect_ratio: aspectRatio as
-                            | '1:1'
-                            | '4:3'
-                            | '3:4'
-                            | '16:9'
-                            | '9:16'
-                            | '3:2'
-                            | '2:3'
-                            | 'auto',
-                        resolution: resolution as '1K' | '2K',
-                    });
-                }
-            } else if (modelId.includes('imagen4-fast')) {
-                generationId = await generateImageImagen4Fast({
-                    prompt: currentPrompt,
-                    aspect_ratio: aspectRatio as '1:1' | '3:4' | '4:3' | '9:16' | '16:9',
-                });
-            } else if (modelId.includes('imagen4-ultra') || modelId.includes('imagen4')) {
-                generationId = await generateImageImagen4Ultra({
-                    prompt: currentPrompt,
-                    aspect_ratio: aspectRatio as '1:1' | '3:4' | '4:3' | '9:16' | '16:9',
-                });
-            } else if (modelId.includes('seedream')) {
-                generationId = await generateImageSeedream({
-                    prompt: currentPrompt,
-                    aspect_ratio: aspectRatio as
-                        | '1:1'
-                        | '4:3'
-                        | '3:4'
-                        | '16:9'
-                        | '9:16'
-                        | '3:2'
-                        | '2:3'
-                        | '21:9',
-                    quality: resolution === '2K' ? 'high' : 'basic',
-                });
-            } else if (modelId.includes('nano-banana')) {
-                generationId = await generateImageNanoBanana({
-                    prompt: currentPrompt,
-                    reference_urls: uploadedUrls.length > 0 ? uploadedUrls : undefined,
-                    aspect_ratio: aspectRatio as '1:1' | '4:3' | '3:4' | '16:9' | '9:16',
-                });
-            } else {
-                // Default to Flux-2
-                generationId = await generateImageFlux2({
-                    prompt: currentPrompt,
-                    aspect_ratio: aspectRatio as
-                        | '1:1'
-                        | '4:3'
-                        | '3:4'
-                        | '16:9'
-                        | '9:16'
-                        | '3:2'
-                        | '2:3'
-                        | 'auto',
-                    resolution: resolution as '1K' | '2K',
-                });
-            }
+            // Use the generic method that properly maps model ID to endpoint
+            const generationId = await generateImageGeneric(selectedModel.id, {
+                prompt: currentPrompt,
+                aspect_ratio: aspectRatio,
+                input_urls: uploadedUrls.length > 0 ? uploadedUrls : undefined,
+                resolution: resolution,
+            });
 
             if (generationId) {
                 toast.success(language === 'ru' ? 'Генерация запущена' : 'Generation started');
