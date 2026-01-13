@@ -16,7 +16,6 @@ import {
   Trash2,
     FolderPlus,
     Cpu,
-    Diamond,
     Zap,
     Maximize2,
     Minimize2,
@@ -26,6 +25,7 @@ import {
     ChevronDown,
     Wand2
 } from "lucide-react";
+import { DiamondIcon } from "@/components/ui/diamond-icon";
 
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
@@ -197,21 +197,29 @@ export function ImageGenerationPage() {
           </div>
       </div>
 
-        <div 
-          className="grid gap-4 sm:gap-6"
-          style={{ 
-            gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))` 
-          }}
-        >
-          {isGenerating && (
-            <div className="aspect-square rounded-[32px] glass flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-[#6F00FF] mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{language === "ru" ? "Генерация..." : "Generating..."}</p>
+            <div 
+              className={`grid gap-4 sm:gap-6 ${generatedImages.length === 0 && !isGenerating ? "min-h-[60vh] items-center justify-center" : ""}`}
+              style={{ 
+                gridTemplateColumns: generatedImages.length === 0 && !isGenerating ? "1fr" : `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))` 
+              }}
+            >
+            {isGenerating && (
+              <div className="aspect-square rounded-[32px] glass flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 animate-spin text-[#6F00FF] mx-auto mb-4" />
+                  <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{language === "ru" ? "Генерация..." : "Generating..."}</p>
+                </div>
               </div>
-            </div>
-          )}
-          {generatedImages.map((img) => (
+            )}
+            {generatedImages.length === 0 && !isGenerating && (
+              <div className="text-center py-20">
+                <p className="text-sm text-white/40 font-normal">
+                  {language === "ru" ? "Здесь пока ничего нет — сделай." : "There's nothing here yet — create something."}
+                </p>
+              </div>
+            )}
+            {generatedImages.map((img) => (
+
             <div
               key={img.id}
               className="flex flex-col gap-4"
@@ -369,26 +377,27 @@ export function ImageGenerationPage() {
                         </SelectContent>
                       </Select>
 
-                      <Select value={quality} onValueChange={(v) => { setQuality(v); setOpenDropdown(null); }} open={openDropdown === "quality"} onOpenChange={(open) => setOpenDropdown(open ? "quality" : null)}>
-                          <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors uppercase tracking-widest">
-                            <div className="flex items-center gap-3">
-                              <Diamond className="w-4 h-4 text-white" />
-                              <span className="text-white">{quality?.toUpperCase()}</span>
-                            </div>
-                            <VisuallyHidden><SelectValue /></VisuallyHidden>
-                          </SelectTrigger>
+                          <Select value={quality} onValueChange={(v) => { setQuality(v); setOpenDropdown(null); }} open={openDropdown === "quality"} onOpenChange={(open) => setOpenDropdown(open ? "quality" : null)}>
+                              <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors uppercase tracking-widest">
+                                <div className="flex items-center gap-3">
+                                  <DiamondIcon className="w-4 h-4 text-white" />
+                                  <span className="text-white">HD</span>
+                                </div>
+                                <VisuallyHidden><SelectValue /></VisuallyHidden>
+                              </SelectTrigger>
 
-                        <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                          {qualityOptions.map((q) => (
-                            <SelectItem key={q.id} value={q.id} className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
-                              <div className="flex items-center gap-3">
-                                <Diamond className="w-3.5 h-3.5 text-white/40" />
-                                {q.name}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                          <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                            {qualityOptions.map((q) => (
+                              <SelectItem key={q.id} value={q.id} className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
+                                <div className="flex items-center gap-3">
+                                  <DiamondIcon className="w-3.5 h-3.5 text-white/40" />
+                                  {q.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -502,13 +511,14 @@ export function ImageGenerationPage() {
                               </div>
                             </div>
                           </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-white/40">{language === "ru" ? "Качество" : "Quality"}</span>
-                            <div className="flex items-center gap-2">
-                              <Diamond className="w-3.5 h-3.5 text-white/40" />
-                              <span className="text-sm font-bold text-white/90 uppercase tracking-widest">{quality}</span>
-                            </div>
-                          </div>
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">HD</span>
+                                <div className="flex items-center gap-2">
+                                  <DiamondIcon className="w-3.5 h-3.5 text-white/40" />
+                                  <span className="text-sm font-bold text-white/90 uppercase tracking-widest">{quality}</span>
+                                </div>
+                              </div>
+
                           <div className="flex items-center justify-between">
                             <span className="text-sm text-white/40">{language === "ru" ? "Размер" : "Size"}</span>
                             <span className="text-sm font-bold text-white/90">2112x2016</span>

@@ -577,17 +577,17 @@ export function LandingPage() {
                   <Link href="/" className={isHeaderLight ? "invert" : ""}>
                     <AnimatedLogo />
                   </Link>
-                    <div className="hidden lg:flex items-center gap-1">
-                      <NavDropdown label={language === "ru" ? "Сделать" : "Create"} items={createItems} language={language} isLight={isHeaderLight} />
-                      <NavDropdown label={language === "ru" ? "Инструменты" : "Tools"} items={toolItems} language={language} isLight={isHeaderLight} />
-                      <div className={`w-px h-4 mx-2 ${isHeaderLight ? "bg-black/10" : "bg-white/10"}`} />
-
-                    <Link href="/school" className={`px-4 py-2 rounded-xl text-sm transition-all font-medium backdrop-blur-md ${
-                      isHeaderLight 
-                        ? "bg-black/10 text-black/60 hover:text-black hover:bg-black/15" 
-                        : "bg-white/10 text-white/60 hover:text-white hover:bg-white/15"
-                    }`}>{language === "ru" ? "Школа" : "School"}</Link>
-                  </div>
+                      <div className="hidden sm:flex items-center gap-1">
+                        <NavDropdown label={language === "ru" ? "Сделать" : "Create"} items={createItems} language={language} isLight={isHeaderLight} />
+                        <NavDropdown label={language === "ru" ? "Инструменты" : "Tools"} items={toolItems} language={language} isLight={isHeaderLight} />
+                        {/* <div className={`w-px h-4 mx-2 ${isHeaderLight ? "bg-black/10" : "bg-white/10"}`} />
+  
+                      <Link href="/school" className={`px-4 py-2 rounded-xl text-sm transition-all font-medium backdrop-blur-md ${
+                        isHeaderLight 
+                          ? "bg-black/10 text-black/60 hover:text-black hover:bg-black/15" 
+                          : "bg-white/10 text-white/60 hover:text-white hover:bg-white/15"
+                      }`}>{language === "ru" ? "Школа" : "School"}</Link> */}
+                    </div>
                 </div>
                 
                 <div className="flex items-center gap-3 sm:gap-4 shrink-0">
@@ -769,11 +769,11 @@ export function LandingPage() {
                 <div className="lg:flex lg:flex-col lg:items-end">
                   <div className="w-full sm:w-auto text-left">
                     <h4 className="font-bold mb-8 text-xs uppercase tracking-[0.2em] text-white/40">{language === "ru" ? "Ресурсы" : "Resources"}</h4>
-                    <ul className="flex flex-col gap-6">
-                      <li><Link href="/school" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Школа" : "School"}</Link></li>
-                      <li><Link href="#" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Блог" : "Blog"}</Link></li>
-                      <li><Link href="#" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Комьюнити" : "Community"}</Link></li>
-                    </ul>
+                      <ul className="flex flex-col gap-6">
+                        {/* <li><Link href="/school" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Школа" : "School"}</Link></li> */}
+                        <li><Link href="#" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Блог" : "Blog"}</Link></li>
+                        <li><Link href="#" className="text-white hover:text-[#6F00FF] transition-colors text-sm font-bold uppercase tracking-wider">{language === "ru" ? "Комьюнити" : "Community"}</Link></li>
+                      </ul>
                   </div>
                 </div>
               </div>

@@ -201,21 +201,29 @@ export function VideoGenerationPage() {
           </div>
       </div>
 
-        <div 
-          className="grid gap-4 sm:gap-6"
-          style={{ 
-            gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))` 
-          }}
-        >
-          {isGenerating && (
-            <div className="aspect-video rounded-[32px] glass flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-[#6F00FF] mx-auto mb-4" />
-                <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{language === "ru" ? "Генерация..." : "Generating..."}</p>
+            <div 
+              className={`grid gap-4 sm:gap-6 ${generatedVideos.length === 0 && !isGenerating ? "min-h-[60vh] items-center justify-center" : ""}`}
+              style={{ 
+                gridTemplateColumns: generatedVideos.length === 0 && !isGenerating ? "1fr" : `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))` 
+              }}
+            >
+            {isGenerating && (
+              <div className="aspect-video rounded-[32px] glass flex items-center justify-center">
+                <div className="text-center">
+                  <Loader2 className="w-12 h-12 animate-spin text-[#6F00FF] mx-auto mb-4" />
+                  <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">{language === "ru" ? "Генерация..." : "Generating..."}</p>
+                </div>
               </div>
-            </div>
-          )}
-          {generatedVideos.map((vid) => (
+            )}
+            {generatedVideos.length === 0 && !isGenerating && (
+              <div className="text-center py-20">
+                <p className="text-sm text-white/40 font-normal">
+                  {language === "ru" ? "Здесь пока ничего нет — сделай." : "There's nothing here yet — create something."}
+                </p>
+              </div>
+            )}
+            {generatedVideos.map((vid) => (
+
             <div
               key={vid.id}
               className="flex flex-col gap-4"

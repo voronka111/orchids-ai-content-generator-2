@@ -81,14 +81,14 @@ function EnhanceToolContent() {
           <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight">
-              {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
-            </h1>
-            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest opacity-50">
-              {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
-            </p>
-          </div>
+            <div>
+              <h1 className="text-3xl font-black uppercase tracking-tight">
+                {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
+                {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
+              </p>
+            </div>
         </div>
 
         <div

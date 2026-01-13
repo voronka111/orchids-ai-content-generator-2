@@ -302,10 +302,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                   <div className="p-4 border-t border-white/10 space-y-4">
                     <div className="bg-white/5 rounded-2xl p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs text-muted-foreground">{t("nav.credits")}</span>
-                        <span className="text-xs font-bold text-[#FFDC74]">{mockUser.credits} / {mockUser.maxCredits}</span>
-                      </div>
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Кредиты</span>
+                          <span className="text-xs font-bold text-[#FFDC74]">{mockUser.credits} / {mockUser.maxCredits}</span>
+                        </div>
                       <Progress value={creditPercentage} className="h-1.5 bg-white/10" indicatorClassName="bg-gradient-to-r from-[#6F00FF] to-[#a855f7]" />
                     </div>
                   </div>
