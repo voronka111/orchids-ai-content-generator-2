@@ -81,14 +81,14 @@ function EnhanceToolContent() {
           <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div>
-            <h1 className="text-3xl font-black uppercase tracking-tight">
-              {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
-            </h1>
-            <p className="text-sm text-muted-foreground font-bold uppercase tracking-widest opacity-50">
-              {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
-            </p>
-          </div>
+            <div>
+              <h1 className="text-3xl font-black uppercase tracking-tight">
+                {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
+              </h1>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
+                {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
+              </p>
+            </div>
         </div>
 
         <div
@@ -218,71 +218,67 @@ function EnhanceToolContent() {
 
       {/* Sidebar (1/4) */}
       <div className="w-full md:w-[380px] border-l border-white/10 flex flex-col bg-[#0A0A0B] p-8">
-        <div className="flex-1 space-y-10">
-          <div>
-            <div className="flex items-center gap-3 text-white/30 mb-6">
-              <Cpu className="w-4 h-4" />
-              <span className="text-[10px] font-black uppercase tracking-widest">{language === "ru" ? "Модель апскейла" : "Upscale Model"}</span>
+          <div className="flex-1 space-y-8">
+            <div>
+              <div className="flex items-center gap-3 text-white/30 mb-4">
+                <Cpu className="w-4 h-4" />
+                <span className="text-[10px] font-black uppercase tracking-widest">{language === "ru" ? "Модель апскейла" : "Upscale Model"}</span>
+              </div>
+              
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger className="w-full h-12 bg-white/5 border-white/5 rounded-xl px-4 text-sm font-bold gap-3 hover:bg-white/10 transition-all">
+                  <div className="flex items-center gap-3">
+                    <div className="w-5 h-5 rounded-lg bg-[#6F00FF]/20 flex items-center justify-center">
+                      <Zap className="w-3 h-3 text-[#6F00FF]" />
+                    </div>
+                    <SelectValue placeholder="Select Model" />
+                  </div>
+                </SelectTrigger>
+                <SelectContent className="bg-[#0A0A0A] border-white/10 rounded-xl p-2">
+                  <SelectItem value="topaz" className="rounded-lg py-3 px-4 focus:bg-[#6F00FF]/10">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">Topaz AI</span>
+                      <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Лучшая детализация" : "Best for details"}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="esrgan" className="rounded-lg py-3 px-4 focus:bg-[#6F00FF]/10">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">Real-ESRGAN</span>
+                      <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Для аниме и графики" : "For anime & graphics"}</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="swinir" className="rounded-lg py-3 px-4 focus:bg-[#6F00FF]/10">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-sm">SwinIR</span>
+                      <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Естественный вид" : "Natural look"}</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            
-            <Select value={model} onValueChange={setModel}>
-              <SelectTrigger className="w-full h-14 bg-white/5 border-white/5 rounded-2xl px-6 text-sm font-bold gap-3 hover:bg-white/10 transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-lg bg-[#6F00FF]/20 flex items-center justify-center">
-                    <Zap className="w-3.5 h-3.5 text-[#6F00FF]" />
-                  </div>
-                  <SelectValue placeholder="Select Model" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="bg-[#0A0A0A] border-white/10 rounded-2xl p-2">
-                <SelectItem value="topaz" className="rounded-xl py-3 px-4 focus:bg-[#6F00FF]/10">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm">Topaz AI</span>
-                    <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Лучшая детализация" : "Best for details"}</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="esrgan" className="rounded-xl py-3 px-4 focus:bg-[#6F00FF]/10">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm">Real-ESRGAN</span>
-                    <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Для аниме и графики" : "For anime & graphics"}</span>
-                  </div>
-                </SelectItem>
-                <SelectItem value="swinir" className="rounded-xl py-3 px-4 focus:bg-[#6F00FF]/10">
-                  <div className="flex flex-col">
-                    <span className="font-bold text-sm">SwinIR</span>
-                    <span className="text-[10px] text-white/30 uppercase tracking-tight">{language === "ru" ? "Естественный вид" : "Natural look"}</span>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
 
-          <div>
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3 text-white/30">
+            <div>
+              <div className="flex items-center gap-3 text-white/30 mb-4">
                 <Maximize2 className="w-4 h-4" />
                 <span className="text-[10px] font-black uppercase tracking-widest">{language === "ru" ? "Кратность увеличения" : "Scale Multiplier"}</span>
               </div>
-              <span className="px-3 py-1 rounded-lg bg-[#6F00FF]/10 text-[#6F00FF] text-xs font-black">{scale[0]}x</span>
-            </div>
-            
-            <div className="px-2">
-              <Slider 
-                value={scale} 
-                onValueChange={setScale} 
-                max={8} 
-                min={2} 
-                step={2}
-                className="cursor-pointer"
-              />
-              <div className="flex justify-between mt-4 text-[10px] font-black text-white/20">
-                <span>2x</span>
-                <span>4x</span>
-                <span>6x</span>
-                <span>8x</span>
+              
+              <div className="grid grid-cols-5 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                {[1, 2, 4, 8, 16].map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => setScale([m])}
+                    className={`h-11 rounded-xl text-xs font-black transition-all ${
+                      scale[0] === m 
+                        ? "bg-white text-black shadow-lg" 
+                        : "text-white/40 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    x{m}
+                  </button>
+                ))}
               </div>
             </div>
-          </div>
 
           <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
             <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">{language === "ru" ? "Характеристики" : "Properties"}</h4>
@@ -299,26 +295,26 @@ function EnhanceToolContent() {
           </div>
         </div>
 
-        <div className="pt-8">
-          <button
-            onClick={handleProcess}
-            disabled={isProcessing}
-            className="w-full py-5 rounded-[24px] bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(111,0,255,0.3)] disabled:opacity-50"
-          >
-            {isProcessing ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <>
-                <Wand2 className="w-4 h-4" />
-                {language === "ru" ? "Улучшить" : "Enhance"}
-                <div className="ml-2 flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/20 text-white">
-                  <Zap className="w-3 h-3 fill-current" />
-                  <span className="text-[10px]">15</span>
-                </div>
-              </>
-            )}
-          </button>
-        </div>
+          <div className="pt-8">
+            <button
+              onClick={handleProcess}
+              disabled={isProcessing}
+              className="w-full py-5 rounded-xl bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(111,0,255,0.3)] disabled:opacity-50"
+            >
+              {isProcessing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <Wand2 className="w-4 h-4" />
+                  {language === "ru" ? "Улучшить" : "Enhance"}
+                  <div className="ml-2 flex items-center gap-1.5 text-[#FFD700] font-mono">
+                    <Zap className="w-3.5 h-3.5 fill-current" />
+                    <span className="text-xs font-bold">15</span>
+                  </div>
+                </>
+              )}
+            </button>
+          </div>
       </div>
     </div>
   );

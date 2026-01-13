@@ -15,7 +15,6 @@ import {
     Trash2,
     FolderPlus,
     Cpu,
-    Diamond,
     Zap,
     Maximize2,
     Minimize2,
@@ -23,8 +22,9 @@ import {
     Play,
     ChevronUp,
     ChevronDown,
-    Wand2,
-} from 'lucide-react';
+    Wand2
+} from "lucide-react";
+import { DiamondIcon } from "@/components/ui/diamond-icon";
 
 import Link from 'next/link';
 import { useLanguage } from '@/lib/language-context';
@@ -367,14 +367,6 @@ export function ImageGenerationPage() {
                     >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <div>
-                        <h1 className="text-2xl font-black uppercase tracking-tight">
-                            {t('type.image')}
-                        </h1>
-                        <p className="text-xs text-muted-foreground uppercase tracking-widest font-bold opacity-50">
-                            {t('type.image.sub')}
-                        </p>
-                    </div>
                 </div>
 
                 <div className="flex items-center gap-6 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
@@ -688,7 +680,7 @@ export function ImageGenerationPage() {
                                 >
                                     <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors uppercase tracking-widest">
                                         <div className="flex items-center gap-3">
-                                            <Diamond className="w-4 h-4 text-white" />
+                                            <DiamondIcon className="w-4 h-4 text-white" />
                                             <span className="text-white">{resolution}</span>
                                         </div>
                                         <VisuallyHidden>
@@ -707,7 +699,7 @@ export function ImageGenerationPage() {
                                                 className="rounded-xl py-2.5 font-medium uppercase tracking-widest"
                                             >
                                                 <div className="flex items-center gap-3">
-                                                    <Diamond className="w-3.5 h-3.5 text-white/40" />
+                                                    <DiamondIcon className="w-3.5 h-3.5 text-white/40" />
                                                     {r.name}
                                                 </div>
                                             </SelectItem>
@@ -864,7 +856,7 @@ export function ImageGenerationPage() {
                                                         {language === 'ru' ? 'Качество' : 'Quality'}
                                                     </span>
                                                     <div className="flex items-center gap-2">
-                                                        <Diamond className="w-3.5 h-3.5 text-white/40" />
+                                                        <DiamondIcon className="w-3.5 h-3.5 text-white/40" />
                                                         <span className="text-sm font-bold text-white/90 uppercase tracking-widest">
                                                             {resolution}
                                                         </span>
