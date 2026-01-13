@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams, useRouter } from "next/navigation";
 import { 
   ArrowLeft, 
   Sparkles, 
@@ -15,15 +14,17 @@ import {
   Heart,
   MoreHorizontal,
   Trash2,
-  FolderPlus,
-  LayoutGrid,
-  List,
-  Cpu,
-  Square,
-  Diamond,
-  Zap,
-  Maximize2,
-  Minimize2
+    FolderPlus,
+    Cpu,
+    Diamond,
+    Zap,
+    Maximize2,
+    Minimize2,
+    Image as ImageIcon,
+    Play,
+    ChevronUp,
+    ChevronDown,
+    Wand2
 } from "lucide-react";
 
 import Link from "next/link";
@@ -76,7 +77,18 @@ export function ImageGenerationPage() {
   const [gridSize, setGridSize] = useState([350]);
   const [selectedImage, setSelectedImage] = useState<GeneratedImage | null>(null);
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [showMoreInfo, setShowMoreInfo] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const router = useRouter();
+
+  const toggleLike = (id: string) => {
+    setGeneratedImages(prev => prev.map(img => 
+      img.id === id ? { ...img, liked: !img.liked } : img
+    ));
+    if (selectedImage?.id === id) {
+      setSelectedImage(prev => prev ? { ...prev, liked: !prev.liked } : null);
+    }
+  };
 
   const handleRemix = (img: GeneratedImage) => {
     setPrompt(img.prompt);
@@ -137,6 +149,17 @@ export function ImageGenerationPage() {
   };
 
   const selectedModel = imageModels.find((m) => m.id === model);
+
+  const getAspectRatioIcon = (id: string, className?: string) => {
+    switch (id) {
+    case "1:1": return <div className={`w-3.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+    case "16:9": return <div className={`w-5 h-3 border-2 border-current rounded-none ${className}`} />;
+    case "9:16": return <div className={`w-3 h-5 border-2 border-current rounded-none ${className}`} />;
+    case "4:3": return <div className={`w-4.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+    case "3:2": return <div className={`w-4.5 h-3 border-2 border-current rounded-none ${className}`} />;
+    default: return <div className={`w-3.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+  }
+};
 
   return (
       <div className="max-w-full mx-auto pb-40 relative overflow-x-hidden">
@@ -206,13 +229,13 @@ export function ImageGenerationPage() {
                   <p className="text-sm font-medium line-clamp-2 text-white/90 leading-relaxed">{img.prompt}</p>
                 </div>
 
-                <div className="absolute top-4 right-4 flex flex-col gap-2">
-                  <button 
-                    onClick={(e) => { e.stopPropagation(); }}
-                    className="p-3 rounded-2xl bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-[#6F00FF] transition-all active:scale-95"
-                  >
-                    <Heart className={`w-4 h-4 ${img.liked ? "fill-red-500 text-red-500 border-none" : ""}`} />
-                  </button>
+                  <div className="absolute top-4 right-4 flex flex-col gap-2">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); toggleLike(img.id); }}
+                      className="p-3 rounded-2xl bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-[#6F00FF] transition-all active:scale-95"
+                    >
+                      <Heart className={`w-4 h-4 ${img.liked ? "fill-red-500 text-red-500 border-none" : ""}`} />
+                    </button>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <button 
@@ -305,50 +328,62 @@ export function ImageGenerationPage() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
-                      <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                        <Cpu className="w-4 h-4 text-[#6F00FF]" />
-                        <span>{selectedModel?.name}</span>
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      {imageModels.map((m) => (
-                        <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
-                          <div className="flex items-center justify-between w-full gap-8">
-                            <span className="font-medium">{m.name}</span>
-                            <span className="text-credits font-mono text-[10px] font-black">{m.credits}</span>
+                      <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
+                        <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                          <Cpu className="w-4 h-4 text-white" />
+                          <SelectValue placeholder={selectedModel?.name} />
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                        {imageModels.map((m) => (
+                          <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
+                            <div className="flex items-center justify-between w-full gap-8">
+                              <span className="font-medium">{m.name}</span>
+                              <span className="text-credits font-mono text-[10px] font-black">{m.credits}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                      <Select value={aspectRatio} onValueChange={(v) => { setAspectRatio(v); setOpenDropdown(null); }} open={openDropdown === "aspect"} onOpenChange={(open) => setOpenDropdown(open ? "aspect" : null)}>
+                        <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3">
+                            {getAspectRatioIcon(aspectRatio, "text-white")}
+                            <span className="text-white">{aspectRatio}</span>
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                          <VisuallyHidden><SelectValue /></VisuallyHidden>
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                          {aspectRatios.map((ar) => (
+                            <SelectItem key={ar.id} value={ar.id} className="rounded-xl py-2.5 font-medium">
+                              <div className="flex items-center gap-3">
+                                {getAspectRatioIcon(ar.id, "text-white/40")}
+                                {ar.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-                  <Select value={aspectRatio} onValueChange={(v) => { setAspectRatio(v); setOpenDropdown(null); }} open={openDropdown === "aspect"} onOpenChange={(open) => setOpenDropdown(open ? "aspect" : null)}>
-                    <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                      <Square className="w-4 h-4 text-[#6F00FF]" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      {aspectRatios.map((ar) => (
-                        <SelectItem key={ar.id} value={ar.id} className="rounded-xl py-2.5 font-medium">
-                          {ar.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-
-                  <Select value={quality} onValueChange={(v) => { setQuality(v); setOpenDropdown(null); }} open={openDropdown === "quality"} onOpenChange={(open) => setOpenDropdown(open ? "quality" : null)}>
-                    <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                      <Diamond className="w-4 h-4 text-[#6F00FF]" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      {qualityOptions.map((q) => (
-                        <SelectItem key={q.id} value={q.id} className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
-                          {q.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      <Select value={quality} onValueChange={(v) => { setQuality(v); setOpenDropdown(null); }} open={openDropdown === "quality"} onOpenChange={(open) => setOpenDropdown(open ? "quality" : null)}>
+                        <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Diamond className="w-4 h-4 text-white" />
+                            <span className="text-white">{quality.toUpperCase()}</span>
+                          </div>
+                          <VisuallyHidden><SelectValue /></VisuallyHidden>
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                          {qualityOptions.map((q) => (
+                            <SelectItem key={q.id} value={q.id} className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
+                              <div className="flex items-center gap-3">
+                                <Diamond className="w-3.5 h-3.5 text-white/40" />
+                                {q.name}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -385,95 +420,180 @@ export function ImageGenerationPage() {
       </div>
 
         <Dialog open={!!selectedImage} onOpenChange={(open) => !open && setSelectedImage(null)}>
-          <DialogContent className="max-w-[95vw] md:max-w-7xl bg-[#0A0A0B]/95 border-white/10 p-0 overflow-hidden rounded-[40px] h-[95vh] md:h-auto md:max-h-[90vh] shadow-2xl">
+          <DialogContent 
+            className="fixed inset-0 w-screen h-screen max-w-none max-h-none p-0 rounded-none border-none bg-transparent"
+            showCloseButton={false}
+          >
             <VisuallyHidden>
               <DialogTitle>Image Details</DialogTitle>
             </VisuallyHidden>
             {selectedImage && (
-              <div className="flex flex-col md:flex-row h-full">
-                  <div className="flex-1 bg-black/40 flex items-center justify-center p-4 md:p-12 overflow-hidden min-h-[300px] md:min-h-0 relative">
-                    <div className="absolute inset-0 bg-[#6F00FF]/5 blur-[100px] -z-10" />
-                    <div className="relative cursor-pointer group"
-                      onClick={() => window.open(selectedImage.url, '_blank')}
-                    >
-                      <img 
-                        src={selectedImage.url} 
-                        alt="" 
-                        className="max-w-full max-h-[70vh] md:max-h-[80vh] w-auto h-auto object-contain rounded-3xl shadow-2xl transition-transform duration-700 group-hover:scale-[1.01]" 
-                      />
-                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20 rounded-3xl backdrop-blur-[2px]">
-                        <div className="bg-white text-black px-4 py-2 rounded-full flex items-center gap-2 font-black uppercase tracking-widest text-[10px]">
-                          <Maximize2 className="w-3.5 h-3.5" />
-                          <span>{language === "ru" ? "Оригинал" : "Original"}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+              <div className="flex h-full w-full">
+                <div 
+                  className="flex-1 bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 relative cursor-pointer"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedImage(null); }}
+                    className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
+                  >
+                    <X className="w-5 h-5 text-white" />
+                  </button>
+                  
+                  <img 
+                    src={selectedImage.url} 
+                    alt="" 
+                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
 
-                <div className="w-full md:w-[420px] p-8 flex flex-col gap-8 border-t md:border-t-0 md:border-l border-white/5 bg-white/[0.02] backdrop-blur-3xl overflow-y-auto">
-                  <div className="space-y-6">
+                <div className="w-[320px] h-full bg-[#0A0A0B] border-l border-white/10 flex flex-col overflow-hidden">
+                  <div className="flex-1 overflow-y-auto p-6 space-y-10">
                     <div>
-                      <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-4">
-                        {language === "ru" ? "ПРОМПТ" : "PROMPT"}
-                      </h3>
-                      <div 
-                        onClick={() => {
-                          navigator.clipboard.writeText(selectedImage.prompt);
-                          toast.success(language === "ru" ? "Промпт скопирован" : "Prompt copied");
-                        }}
-                        className="bg-white/5 hover:bg-white/10 rounded-3xl p-6 border border-white/5 cursor-pointer transition-all group relative active:scale-[0.98]"
-                      >
-                        <div className="max-h-[160px] overflow-y-auto pr-2 custom-scrollbar">
-                          <p className="text-sm leading-relaxed text-white/90 font-medium select-all">
-                            {selectedImage.prompt}
-                          </p>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2 text-white/50">
+                          <Sparkles className="w-4 h-4" />
+                          <span className="text-xs font-semibold uppercase tracking-wider">{language === "ru" ? "Промпт" : "Prompt"}</span>
                         </div>
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <div className="bg-white/20 px-2 py-1 rounded-lg text-[10px] text-white font-bold uppercase tracking-widest">Copy</div>
-                        </div>
+                        <button 
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedImage.prompt);
+                            toast.success(language === "ru" ? "Скопировано" : "Copied");
+                          }}
+                          className="px-3 py-1 text-xs font-semibold bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white/70"
+                        >
+                          {language === "ru" ? "Копировать" : "Copy"}
+                        </button>
                       </div>
+                      <p className="text-sm text-white/90 leading-relaxed font-medium">
+                        {selectedImage.prompt}
+                      </p>
                     </div>
-                    
-                    <div className="bg-white/5 rounded-3xl p-6 border border-white/5 space-y-6">
-                      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.2em] text-white/20 border-b border-white/5 pb-4">
-                        <span>{language === "ru" ? "Характеристики" : "Parameters"}</span>
-                        <span>{selectedImage.createdAt.toLocaleDateString(language === "ru" ? "ru-RU" : "en-US")}</span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-6">
-                        <div className="space-y-1.5">
-                          <h4 className="text-[10px] font-black text-white/20 uppercase tracking-widest">{language === "ru" ? "Модель" : "Model"}</h4>
-                          <p className="text-xs font-black text-white/80">{selectedImage.model}</p>
+
+                    <div className="pt-4">
+                      <button 
+                        onClick={() => setShowMoreInfo(!showMoreInfo)}
+                        className="flex items-center justify-between w-full text-white/50 mb-6"
+                      >
+                        <div className="flex items-center gap-2">
+                          <ImageIcon className="w-4 h-4" />
+                          <span className="text-xs font-semibold uppercase tracking-wider">{language === "ru" ? "Информация" : "Information"}</span>
                         </div>
-                        <div className="space-y-1.5">
-                          <h4 className="text-[10px] font-black text-white/20 uppercase tracking-widest">{language === "ru" ? "Формат" : "Aspect"}</h4>
-                          <p className="text-xs font-black text-white/80">{aspectRatio}</p>
+                        {showMoreInfo ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </button>
+                      
+                      {showMoreInfo && (
+                        <div className="space-y-5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white/40">{language === "ru" ? "Модель" : "Model"}</span>
+                            <span className="text-sm font-bold text-white/90">{selectedImage.model}</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white/40">{language === "ru" ? "Изображения" : "Images"}</span>
+                            <div className="flex items-center gap-1">
+                              <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                                <img src={selectedImage.url} alt="" className="w-full h-full object-cover" />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white/40">{language === "ru" ? "Качество" : "Quality"}</span>
+                            <div className="flex items-center gap-2">
+                              <Diamond className="w-3.5 h-3.5 text-white/40" />
+                              <span className="text-sm font-bold text-white/90 uppercase tracking-widest">{quality}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white/40">{language === "ru" ? "Размер" : "Size"}</span>
+                            <span className="text-sm font-bold text-white/90">2112x2016</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-white/40">{language === "ru" ? "Создано" : "Created"}</span>
+                            <span className="text-sm font-bold text-white/90">
+                              {selectedImage.createdAt.toLocaleDateString(language === "ru" ? "ru-RU" : "en-US", { 
+                                year: 'numeric', 
+                                month: 'short', 
+                                day: 'numeric' 
+                              })}
+                            </span>
+                          </div>
                         </div>
-                        <div className="space-y-1.5">
-                          <h4 className="text-[10px] font-black text-white/20 uppercase tracking-widest">{language === "ru" ? "Качество" : "Quality"}</h4>
-                          <p className="text-xs font-black text-[#FFDC74] uppercase tracking-widest">{quality}</p>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   </div>
 
-                    <div className="mt-auto pt-6 border-t border-white/5">
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <button className="py-4 rounded-2xl bg-white text-black hover:bg-white/90 transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest active:scale-95">
+                    <div className="p-6 border-t border-white/10 space-y-4">
+                      <button 
+                        onClick={() => {
+                          router.push(`/app/create/video?image=${encodeURIComponent(selectedImage.url)}`);
+                        }}
+                        className="w-full py-4 rounded-2xl bg-[#6F00FF] hover:bg-[#7F00FF] text-white font-black text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(111,0,255,0.2)]"
+                      >
+                        <Play className="w-4 h-4 fill-white text-white" />
+                        {language === "ru" ? "Анимировать" : "Animate"}
+                      </button>
+                      
+                        <div className="grid grid-cols-2 gap-3">
+                          <button 
+                            onClick={() => {
+                              router.push(`/app/tools/enhance?image=${encodeURIComponent(selectedImage.url)}`);
+                            }}
+                            className="py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2.5 text-xs transition-all border border-white/5"
+                          >
+                            <Wand2 className="w-4 h-4 text-[#6F00FF]" />
+                            {language === "ru" ? "Улучшить" : "Upscale"}
+                          </button>
+                        <button 
+                          onClick={() => {
+                            handleRemix(selectedImage);
+                            setSelectedImage(null);
+                          }}
+                          className="py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2.5 text-xs transition-all border border-white/5"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          {language === "ru" ? "Переделать" : "Remake"}
+                        </button>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
+                        <button 
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = selectedImage.url;
+                            link.download = 'generated-image.png';
+                            link.click();
+                            toast.success(language === "ru" ? "Загрузка начата" : "Download started");
+                          }}
+                          className="flex-1 py-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold flex items-center justify-center gap-2.5 text-xs transition-all border border-white/5"
+                        >
                           <Download className="w-4 h-4" />
                           {language === "ru" ? "Скачать" : "Download"}
                         </button>
-                        <button className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest active:scale-95">
-                          <Share2 className="w-4 h-4" />
-                          {language === "ru" ? "Share" : "Share"}
+                        <button 
+                          onClick={() => toggleLike(selectedImage.id)}
+                          className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 group active:scale-90"
+                        >
+                          <Heart className={`w-5 h-5 transition-colors ${selectedImage.liked ? "fill-red-500 text-red-500 border-none" : "text-white/40 group-hover:text-white"}`} />
                         </button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 group active:scale-90">
+                              <MoreHorizontal className="w-5 h-5 text-white/40 group-hover:text-white" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
+                            <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
+                              <FolderPlus className="w-4 h-4 text-white/40" />
+                              <span className="text-sm font-medium">{language === "ru" ? "В папку" : "Add to folder"}</span>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
+                              <Trash2 className="w-4 h-4" />
+                              <span className="text-sm font-medium">{language === "ru" ? "Удалить" : "Delete"}</span>
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
-                      <Link
-                        href="/app/tools/enhance"
-                        className="w-full py-4 rounded-2xl bg-[#6F00FF]/10 hover:bg-[#6F00FF]/20 text-[#6F00FF] border border-[#6F00FF]/20 transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest active:scale-95"
-                      >
-                        <Zap className="w-4 h-4 fill-current" />
-                        HD Upscale
-                      </Link>
                     </div>
                 </div>
               </div>

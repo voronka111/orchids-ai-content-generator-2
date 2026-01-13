@@ -23,10 +23,11 @@ import {
   Heart,
   MoreHorizontal,
   Trash2,
-  FolderPlus,
-  Maximize2,
-  Minimize2
-} from "lucide-react";
+    FolderPlus,
+    Maximize2,
+    Minimize2,
+    Diamond
+  } from "lucide-react";
 
 import Link from "next/link";
 import { useLanguage } from "@/lib/language-context";
@@ -82,6 +83,23 @@ export function VideoGenerationPage() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const toggleLike = (id: string) => {
+    setGeneratedVideos(prev => prev.map(vid => 
+      vid.id === id ? { ...vid, liked: !vid.liked } : vid
+    ));
+    if (selectedVideo?.id === id) {
+      setSelectedVideo(prev => prev ? { ...prev, liked: !prev.liked } : null);
+    }
+  };
+
+  const handleRemix = (vid: GeneratedVideo) => {
+    setPrompt(vid.prompt);
+    setAspectRatio(vid.aspectRatio);
+    setDuration(vid.duration);
+    window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    toast.success(language === "ru" ? "Параметры скопированы в панель генерации" : "Parameters copied to generation bar");
+  };
+
   useEffect(() => {
     const promptParam = searchParams.get("prompt");
     if (promptParam) {
@@ -135,6 +153,17 @@ export function VideoGenerationPage() {
   };
 
   const selectedModel = videoModels.find((m) => m.id === model);
+
+  const getAspectRatioIcon = (id: string, className?: string) => {
+    switch (id) {
+    case "1:1": return <div className={`w-3.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+    case "16:9": return <div className={`w-5 h-3 border-2 border-current rounded-none ${className}`} />;
+    case "9:16": return <div className={`w-3 h-5 border-2 border-current rounded-none ${className}`} />;
+    case "4:3": return <div className={`w-4.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+    case "3:2": return <div className={`w-4.5 h-3 border-2 border-current rounded-none ${className}`} />;
+    default: return <div className={`w-3.5 h-3.5 border-2 border-current rounded-none ${className}`} />;
+  }
+};
 
   return (
       <div className="max-w-full mx-auto pb-40 relative overflow-x-hidden">
@@ -308,49 +337,68 @@ export function VideoGenerationPage() {
             />
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
-                      <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                        <Cpu className="w-4 h-4 text-[#6F00FF]" />
-                        <span>{selectedModel?.name}</span>
-                      </SelectTrigger>
-                      <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      {videoModels.map((m) => (
-                        <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
-                          <div className="flex items-center justify-between w-full gap-8">
-                            <span className="font-medium">{m.name}</span>
-                            <span className="text-credits font-mono text-[10px] font-black">{m.credits}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
+                        <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                          <Cpu className="w-4 h-4 text-white" />
+                          <span>{selectedModel?.name}</span>
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                        {videoModels.map((m) => (
+                          <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
+                            <div className="flex items-center justify-between w-full gap-8">
+                              <span className="font-medium">{m.name}</span>
+                              <span className="text-credits font-mono text-[10px] font-black">{m.credits}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
 
-                  <Select value={aspectRatio} onValueChange={(v) => { setAspectRatio(v); setOpenDropdown(null); }} open={openDropdown === "aspect"} onOpenChange={(open) => setOpenDropdown(open ? "aspect" : null)}>
-                    <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                      <Square className="w-4 h-4 text-[#6F00FF]" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      {aspectRatios.map((ar) => (
-                        <SelectItem key={ar.id} value={ar.id} className="rounded-xl py-2.5 font-medium">
-                          {ar.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                        <Select value={aspectRatio} onValueChange={(v) => { setAspectRatio(v); setOpenDropdown(null); }} open={openDropdown === "aspect"} onOpenChange={(open) => setOpenDropdown(open ? "aspect" : null)}>
+                          <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-3">
+                              {getAspectRatioIcon(aspectRatio, "text-white")}
+                              <span className="text-white">{aspectRatio}</span>
+                            </div>
+                            <VisuallyHidden><SelectValue /></VisuallyHidden>
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                            {aspectRatios.map((ar) => (
+                              <SelectItem key={ar.id} value={ar.id} className="rounded-xl py-2.5 font-medium">
+                                <div className="flex items-center gap-3">
+                                  {getAspectRatioIcon(ar.id, "text-white/40")}
+                                  {ar.name}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
 
-                  <Select value={duration} onValueChange={(v) => { setDuration(v); setOpenDropdown(null); }} open={openDropdown === "duration"} onOpenChange={(open) => setOpenDropdown(open ? "duration" : null)}>
-                    <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                      <Clock className="w-4 h-4 text-[#6F00FF]" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
-                      <SelectItem value="5" className="rounded-xl py-2.5 font-medium uppercase tracking-widest">5s</SelectItem>
-                      <SelectItem value="10" className="rounded-xl py-2.5 font-medium uppercase tracking-widest">10s</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                        <Select value={duration} onValueChange={(v) => { setDuration(v); setOpenDropdown(null); }} open={openDropdown === "duration"} onOpenChange={(open) => setOpenDropdown(open ? "duration" : null)}>
+                          <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <Clock className="w-4 h-4 text-white" />
+                              <span className="text-white">{duration}s</span>
+                            </div>
+                            <VisuallyHidden><SelectValue /></VisuallyHidden>
+                          </SelectTrigger>
+                          <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
+                            <SelectItem value="5" className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
+                              <div className="flex items-center gap-3">
+                                <Clock className="w-3.5 h-3.5 text-white/40" />
+                                5s
+                              </div>
+                            </SelectItem>
+                            <SelectItem value="10" className="rounded-xl py-2.5 font-medium uppercase tracking-widest">
+                              <div className="flex items-center gap-3">
+                                <Clock className="w-3.5 h-3.5 text-white/40" />
+                                10s
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                  </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <div className="text-sm text-muted-foreground hidden sm:block">
@@ -458,18 +506,59 @@ export function VideoGenerationPage() {
                     </div>
                   </div>
 
-                    <div className="mt-auto pt-6 border-t border-white/5">
-                      <div className="grid grid-cols-2 gap-3 mb-3">
-                        <button className="py-4 rounded-2xl bg-white text-black hover:bg-white/90 transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest active:scale-95">
-                          <Download className="w-4 h-4" />
-                          {language === "ru" ? "Скачать" : "Download"}
-                        </button>
-                        <button className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black uppercase tracking-widest active:scale-95">
-                          <Share2 className="w-4 h-4" />
-                          {language === "ru" ? "Share" : "Share"}
-                        </button>
+                      <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <button 
+                            onClick={() => {
+                              const link = document.createElement('a');
+                              link.href = selectedVideo.thumbnail; // In a real app, this would be the video URL
+                              link.download = 'generated-video.mp4';
+                              link.click();
+                              toast.success(language === "ru" ? "Загрузка начата" : "Download started");
+                            }}
+                            className="py-4 rounded-2xl bg-[#6F00FF] text-white hover:bg-[#7F00FF] transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95 shadow-[0_0_30px_rgba(111,0,255,0.2)]"
+                          >
+                            <Download className="w-4 h-4" />
+                            {language === "ru" ? "Скачать" : "Download"}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              handleRemix(selectedVideo);
+                              setSelectedVideo(null);
+                            }}
+                            className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95"
+                          >
+                            <RefreshCw className="w-4 h-4" />
+                            {language === "ru" ? "Переделать" : "Remake"}
+                          </button>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <button 
+                            onClick={() => toggleLike(selectedVideo.id)}
+                            className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95 group"
+                          >
+                            <Heart className={`w-4 h-4 transition-colors ${selectedVideo.liked ? "fill-red-500 text-red-500 border-none" : "text-white/40 group-hover:text-white"}`} />
+                            {language === "ru" ? "В избранное" : "Favorite"}
+                          </button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <button className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95 group">
+                                <MoreHorizontal className="w-5 h-5 text-white/40 group-hover:text-white" />
+                              </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
+                              <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
+                                <FolderPlus className="w-4 h-4 text-white/40" />
+                                <span className="text-sm font-medium">{language === "ru" ? "В папку" : "Add to folder"}</span>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
+                                <Trash2 className="w-4 h-4" />
+                                <span className="text-sm font-medium">{language === "ru" ? "Удалить" : "Delete"}</span>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
                       </div>
-                    </div>
                 </div>
               </div>
             )}

@@ -19,11 +19,11 @@ import {
   RefreshCw,
   Sun,
   Zap,
-  LayoutGrid,
-  Diamond,
-  Square,
-  Palette
-} from "lucide-react";
+    LayoutGrid,
+    Gem,
+    Square,
+    Palette
+  } from "lucide-react";
 
 import { useLanguage } from "@/lib/language-context";
 import { 
@@ -93,14 +93,25 @@ function PromptBar({
     return audioModels[0].name;
   };
 
-  return (
-    <div
-      className={`w-full max-w-2xl mx-auto ${
-        sticky
-          ? "fixed bottom-4 left-0 right-0 z-40 px-4 sm:px-6 pointer-events-none"
-          : ""
-      }`}
-    >
+    const getAspectRatioIcon = (id: string, className?: string) => {
+      switch (id) {
+        case "1:1": return <div className={`w-3 h-3 border border-current rounded-sm ${className}`} />;
+        case "16:9": return <div className={`w-4 h-2.5 border border-current rounded-sm ${className}`} />;
+        case "9:16": return <div className={`w-2.5 h-4 border border-current rounded-sm ${className}`} />;
+        case "4:3": return <div className={`w-3.5 h-3 border border-current rounded-sm ${className}`} />;
+        case "3:2": return <div className={`w-3.5 h-2.5 border border-current rounded-sm ${className}`} />;
+        default: return <div className={`w-3 h-3 border border-current rounded-sm ${className}`} />;
+      }
+    };
+
+    return (
+      <div
+        className={`w-full max-w-2xl mx-auto ${
+          sticky
+            ? "fixed bottom-4 left-0 right-0 z-40 px-4 sm:px-6 pointer-events-none"
+            : ""
+        }`}
+      >
       <div
         className={`relative rounded-3xl glass p-4 transition-all pointer-events-auto ${
           isDragging ? "border-[#6F00FF] border-2" : ""
@@ -185,41 +196,41 @@ function PromptBar({
             </Tabs>
 
             {type !== "audio" && (
-              <>
-                <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                  <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2">
-                    <Square className="w-3.5 h-3.5" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black border-white/10">
-                    {aspectRatios.map((ar) => (
-                      <SelectItem key={ar.id} value={ar.id}>
-                        <div className="flex items-center gap-2">
-                          <Square className="w-3.5 h-3.5" />
-                          {ar.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <>
+                  <Select value={aspectRatio} onValueChange={setAspectRatio}>
+                    <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2">
+                      {getAspectRatioIcon(aspectRatio, "text-white")}
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-white/10">
+                      {aspectRatios.map((ar) => (
+                        <SelectItem key={ar.id} value={ar.id}>
+                          <div className="flex items-center gap-2">
+                            {getAspectRatioIcon(ar.id, "text-white/40")}
+                            {ar.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
-                <Select value={quality} onValueChange={setQuality}>
-                  <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2">
-                    <Diamond className="w-3.5 h-3.5" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-black border-white/10">
-                    {qualityOptions.map((q) => (
-                      <SelectItem key={q.id} value={q.id}>
-                        <div className="flex items-center gap-2">
-                          <Diamond className="w-3.5 h-3.5" />
-                          {q.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </>
+                  <Select value={quality} onValueChange={setQuality}>
+                    <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2">
+                      <Gem className="w-3.5 h-3.5 text-white" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-black border-white/10">
+                      {qualityOptions.map((q) => (
+                        <SelectItem key={q.id} value={q.id}>
+                          <div className="flex items-center gap-2">
+                            <Gem className="w-3.5 h-3.5 text-white/40" />
+                            {q.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
             )}
           </div>
 
