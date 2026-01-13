@@ -19,10 +19,10 @@ import {
   RefreshCw,
   Sun,
   Zap,
-    LayoutGrid,
-    Gem,
+    Diamond,
     Square,
-    Palette
+    Palette,
+    Cpu
   } from "lucide-react";
 
 import { useLanguage } from "@/lib/language-context";
@@ -95,12 +95,12 @@ function PromptBar({
 
     const getAspectRatioIcon = (id: string, className?: string) => {
       switch (id) {
-        case "1:1": return <div className={`w-3 h-3 border border-current rounded-sm ${className}`} />;
-        case "16:9": return <div className={`w-4 h-2.5 border border-current rounded-sm ${className}`} />;
-        case "9:16": return <div className={`w-2.5 h-4 border border-current rounded-sm ${className}`} />;
-        case "4:3": return <div className={`w-3.5 h-3 border border-current rounded-sm ${className}`} />;
-        case "3:2": return <div className={`w-3.5 h-2.5 border border-current rounded-sm ${className}`} />;
-        default: return <div className={`w-3 h-3 border border-current rounded-sm ${className}`} />;
+        case "1:1": return <div className={`w-3 h-3 border border-current rounded-none ${className}`} />;
+        case "16:9": return <div className={`w-4 h-2.5 border border-current rounded-none ${className}`} />;
+        case "9:16": return <div className={`w-2.5 h-4 border border-current rounded-none ${className}`} />;
+        case "4:3": return <div className={`w-3.5 h-3 border border-current rounded-none ${className}`} />;
+        case "3:2": return <div className={`w-3.5 h-2.5 border border-current rounded-none ${className}`} />;
+        default: return <div className={`w-3 h-3 border border-current rounded-none ${className}`} />;
       }
     };
 
@@ -214,35 +214,36 @@ function PromptBar({
                     </SelectContent>
                   </Select>
 
-                  <Select value={quality} onValueChange={setQuality}>
-                    <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2">
-                      <Gem className="w-3.5 h-3.5 text-white" />
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-black border-white/10">
-                      {qualityOptions.map((q) => (
-                        <SelectItem key={q.id} value={q.id}>
-                          <div className="flex items-center gap-2">
-                            <Gem className="w-3.5 h-3.5 text-white/40" />
-                            {q.name}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <Select value={quality} onValueChange={setQuality}>
+                      <SelectTrigger className="w-fit min-w-[60px] h-9 bg-white/5 border-none rounded-full px-3 text-xs gap-2 uppercase tracking-widest">
+                        <div className="flex items-center gap-2">
+                          <Diamond className="w-3.5 h-3.5 text-white" />
+                          <span className="text-white">{quality?.toUpperCase()}</span>
+                        </div>
+                        <VisuallyHidden><SelectValue /></VisuallyHidden>
+                      </SelectTrigger>
+                      <SelectContent className="bg-black border-white/10">
+                        {qualityOptions.map((q) => (
+                          <SelectItem key={q.id} value={q.id} className="uppercase tracking-widest">
+                            <div className="flex items-center gap-2">
+                              <Diamond className="w-3.5 h-3.5 text-white/40" />
+                              {q.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
                 </>
             )}
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
-              <Zap className="w-3.5 h-3.5" />
-              <span>{getModel()}</span>
-              <span className="mx-1">•</span>
-              <div className="flex items-center gap-0.5 text-credits font-mono">
-                <span>10</span>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="hidden sm:flex items-center gap-1 text-xs text-muted-foreground">
+                <Zap className="w-3.5 h-3.5" />
+                <span>{getModel()}</span>
               </div>
-            </div>
+
             <button
               onClick={() => onGenerate?.(prompt, type)}
               disabled={!prompt.trim()}
@@ -491,56 +492,6 @@ function AppCard({
           </div>
       </section>
 
-      <section>
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold">{t("section.apps")}</h2>
-          <p className="text-sm text-muted-foreground">{t("section.apps.sub")}</p>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-          <AppCard
-            icon={User}
-            title={t("app.stylist")}
-            subtitle={t("app.stylist.sub")}
-            href="/app/apps/stylist"
-            image="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop"
-          />
-          <AppCard
-            icon={RefreshCw}
-            title={t("app.faceSwap")}
-            subtitle={t("app.faceSwap.sub")}
-            href="/app/apps/face-swap"
-            image="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop"
-          />
-          <AppCard
-            icon={Sun}
-            title={t("app.relight")}
-            subtitle={t("app.relight.sub")}
-            href="/app/apps/relight"
-            image="https://images.unsplash.com/photo-1500462918059-b1a0cb512f1d?w=400&h=300&fit=crop"
-          />
-          <AppCard
-            icon={RefreshCw}
-            title={t("app.restore")}
-            subtitle={t("app.restore.sub")}
-            href="#"
-            image="https://images.unsplash.com/photo-1512149177596-f817c7ef5d4c?w=400&h=300&fit=crop"
-          />
-            <AppCard
-              icon={Palette}
-              title={t("app.ghibli")}
-              subtitle={t("app.ghibli.sub")}
-              href="#"
-              image="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&auto=format&fit=crop"
-            />
-          <AppCard
-            icon={LayoutGrid}
-            title={t("app.product")}
-            subtitle={t("app.product.sub")}
-            href="#"
-            image="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=300&fit=crop"
-          />
-        </div>
-      </section>
     </div>
   );
 }

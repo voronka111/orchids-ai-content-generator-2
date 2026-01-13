@@ -338,11 +338,15 @@ export function VideoGenerationPage() {
 
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
-                        <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
-                          <Cpu className="w-4 h-4 text-white" />
-                          <span>{selectedModel?.name}</span>
-                        </SelectTrigger>
+                        <Select value={model} onValueChange={(v) => { setModel(v); setOpenDropdown(null); }} open={openDropdown === "model"} onOpenChange={(open) => setOpenDropdown(open ? "model" : null)}>
+                          <SelectTrigger className="w-fit min-w-[100px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+                            <div className="flex items-center gap-3">
+                              <Cpu className="w-4 h-4 text-white" />
+                              <span className="text-white">{selectedModel?.name}</span>
+                            </div>
+                            <VisuallyHidden><SelectValue /></VisuallyHidden>
+                          </SelectTrigger>
+
                         <SelectContent className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2" align="start">
                         {videoModels.map((m) => (
                           <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
@@ -506,59 +510,60 @@ export function VideoGenerationPage() {
                     </div>
                   </div>
 
-                      <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
-                        <div className="grid grid-cols-2 gap-3">
-                          <button 
-                            onClick={() => {
-                              const link = document.createElement('a');
-                              link.href = selectedVideo.thumbnail; // In a real app, this would be the video URL
-                              link.download = 'generated-video.mp4';
-                              link.click();
-                              toast.success(language === "ru" ? "Загрузка начата" : "Download started");
-                            }}
-                            className="py-4 rounded-2xl bg-[#6F00FF] text-white hover:bg-[#7F00FF] transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95 shadow-[0_0_30px_rgba(111,0,255,0.2)]"
-                          >
-                            <Download className="w-4 h-4" />
-                            {language === "ru" ? "Скачать" : "Download"}
-                          </button>
-                          <button 
-                            onClick={() => {
-                              handleRemix(selectedVideo);
-                              setSelectedVideo(null);
-                            }}
-                            className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                            {language === "ru" ? "Переделать" : "Remake"}
-                          </button>
+                        <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
+                          <div className="grid grid-cols-2 gap-3">
+                            <button 
+                              onClick={() => {
+                                const link = document.createElement('a');
+                                link.href = selectedVideo.thumbnail; // In a real app, this would be the video URL
+                                link.download = 'generated-video.mp4';
+                                link.click();
+                                toast.success(language === "ru" ? "Загрузка начата" : "Download started");
+                              }}
+                              className="py-4 rounded-2xl bg-[#6F00FF] text-white hover:bg-[#7F00FF] transition-all flex items-center justify-center gap-3 text-xs font-bold active:scale-95 shadow-[0_0_30px_rgba(111,0,255,0.2)]"
+                            >
+                              <Download className="w-4 h-4 text-white" />
+                              {language === "ru" ? "Скачать" : "Download"}
+                            </button>
+                            <button 
+                              onClick={() => {
+                                handleRemix(selectedVideo);
+                                setSelectedVideo(null);
+                              }}
+                              className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-bold active:scale-95"
+                            >
+                              <RefreshCw className="w-4 h-4 text-white" />
+                              {language === "ru" ? "Переделать" : "Remake"}
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button 
+                              onClick={() => toggleLike(selectedVideo.id)}
+                              className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-bold active:scale-95 group"
+                            >
+                              <Heart className={`w-4 h-4 transition-colors ${selectedVideo.liked ? "fill-red-500 text-red-500 border-none" : "text-white/40 group-hover:text-white"}`} />
+                              {language === "ru" ? "В избранное" : "Favorite"}
+                            </button>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95 group">
+                                  <MoreHorizontal className="w-5 h-5 text-white/40 group-hover:text-white" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
+                                <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
+                                  <FolderPlus className="w-4 h-4 text-white/40" />
+                                  <span className="text-sm font-medium">{language === "ru" ? "В папку" : "Add to folder"}</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
+                                  <Trash2 className="w-4 h-4" />
+                                  <span className="text-sm font-medium">{language === "ru" ? "Удалить" : "Delete"}</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          <button 
-                            onClick={() => toggleLike(selectedVideo.id)}
-                            className="flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all flex items-center justify-center gap-3 text-xs font-black active:scale-95 group"
-                          >
-                            <Heart className={`w-4 h-4 transition-colors ${selectedVideo.liked ? "fill-red-500 text-red-500 border-none" : "text-white/40 group-hover:text-white"}`} />
-                            {language === "ru" ? "В избранное" : "Favorite"}
-                          </button>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all active:scale-95 group">
-                                <MoreHorizontal className="w-5 h-5 text-white/40 group-hover:text-white" />
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
-                              <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
-                                <FolderPlus className="w-4 h-4 text-white/40" />
-                                <span className="text-sm font-medium">{language === "ru" ? "В папку" : "Add to folder"}</span>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
-                                <Trash2 className="w-4 h-4" />
-                                <span className="text-sm font-medium">{language === "ru" ? "Удалить" : "Delete"}</span>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </div>
+
                 </div>
               </div>
             )}

@@ -282,24 +282,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                       </div>
                     </div>
 
-                    <div>
-                      <h3 className="px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t("nav.apps")}</h3>
-                      <div className="space-y-1">
-                        {appItems.map((item) => (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setMenuOpen(false)}
-                            className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group"
-                          >
-                            <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover:bg-white/10 group-hover:text-white transition-colors">
-                              <item.icon className="w-4 h-4" />
-                            </div>
-                            <span className="text-sm font-medium">{item.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
 
                     <div>
                       <h3 className="px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">{t("nav.library")}</h3>
@@ -339,7 +321,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <nav className="hidden md:flex items-center gap-1">
               <HeaderDropdown label={t("nav.create")} items={createItems} pathname={pathname} />
               <HeaderDropdown label={t("nav.edit")} items={editItems} pathname={pathname} />
-              <HeaderDropdown label={t("nav.apps")} items={appItems} pathname={pathname} />
+
             </nav>
           </div>
 

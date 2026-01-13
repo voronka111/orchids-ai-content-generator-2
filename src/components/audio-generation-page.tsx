@@ -491,18 +491,16 @@ export function AudioGenerationPage() {
             <button className="hidden sm:block text-white/20 hover:text-white transition-colors"><Repeat className="w-4 h-4" /></button>
           </div>
 
-          {/* Right: Volume & More */}
-          <div className="hidden lg:flex items-center justify-end gap-6 flex-1">
-            <div className="flex items-center gap-3 group">
-              <Volume2 className="w-4 h-4 text-white/30 group-hover:text-white transition-colors" />
-              <div className="w-24 h-1 bg-white/5 rounded-full relative overflow-hidden cursor-pointer">
-                <div className="absolute inset-y-0 left-0 w-2/3 bg-white/20 group-hover:bg-[#6F00FF] transition-all" />
+            {/* Right: Volume & More */}
+            <div className="hidden lg:flex items-center justify-end gap-6 flex-1">
+              <div className="flex items-center gap-3 group">
+                <Volume2 className="w-4 h-4 text-white/30 group-hover:text-white transition-colors" />
+                <div className="w-24 h-1 bg-white/5 rounded-full relative overflow-hidden cursor-pointer">
+                  <div className="absolute inset-y-0 left-0 w-2/3 bg-white/20 group-hover:bg-[#6F00FF] transition-all" />
+                </div>
               </div>
             </div>
-            <button className="p-2 text-white/20 hover:text-white transition-colors">
-              <Share2 className="w-4 h-4" />
-            </button>
-          </div>
+
           
           {/* Mobile Right: Small buttons */}
           <div className="lg:hidden flex items-center gap-2">
