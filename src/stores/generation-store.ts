@@ -76,6 +76,13 @@ interface GenerationState {
     // Upload
     uploadImage: (file: File) => Promise<string | null>;
     uploadVideo: (file: File) => Promise<string | null>;
+
+    // Image Tools - Upscale
+    upscaleTopaz: (params: TopazUpscaleParams) => Promise<string | null>;
+    upscaleRecraft: (params: RecraftUpscaleParams) => Promise<string | null>;
+
+    // Image Tools - Background Removal
+    removeBackground: (params: RemoveBackgroundParams) => Promise<string | null>;
 }
 
 export interface Flux2TextToImageParams {
@@ -215,6 +222,19 @@ export interface SunoParams {
     style_weight?: number;
 }
 
+export interface TopazUpscaleParams {
+    image_url: string;
+    upscale_factor: '1' | '2' | '4' | '8';
+}
+
+export interface RecraftUpscaleParams {
+    image: string;
+}
+
+export interface RemoveBackgroundParams {
+    image: string;
+}
+
 const POLL_INTERVAL = 5000;
 const MAX_POLL_ATTEMPTS = 120;
 
@@ -257,8 +277,9 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
         try {
             // Find or create "Избранное" collection
             const { data: collections } = await api.GET('/collections/');
-            let favoritesCollection = collections?.find(
-                (c: any) => c.name === 'Избранное' || c.name === 'Favorites'
+            const collectionsList = collections as Array<{ id: string; name: string }> | undefined;
+            let favoritesCollection = collectionsList?.find(
+                (c) => c.name === 'Избранное' || c.name === 'Favorites'
             );
 
             if (!favoritesCollection) {
@@ -310,17 +331,26 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                 return;
             }
 
-            if (data && typeof data === 'object' && 'data' in data && Array.isArray((data as any).data)) {
+            if (
+                data &&
+                typeof data === 'object' &&
+                'data' in data &&
+                Array.isArray((data as any).data)
+            ) {
                 const historyData = data as {
                     data: Generation[];
                     pagination: { has_more: boolean };
                 };
 
                 set((state) => {
-                    const newGenerations = reset ? historyData.data : [...state.generations, ...historyData.data];
+                    const newGenerations = reset
+                        ? historyData.data
+                        : [...state.generations, ...historyData.data];
                     // Ensure uniqueness by ID
-                    const uniqueGenerations = Array.from(new Map(newGenerations.map(g => [g.id, g])).values());
-                    
+                    const uniqueGenerations = Array.from(
+                        new Map(newGenerations.map((g) => [g.id, g])).values()
+                    );
+
                     return {
                         generations: uniqueGenerations,
                         hasMore: historyData.pagination.has_more,
@@ -329,10 +359,10 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                     };
                 });
             } else {
-                set({ 
-                    generations: reset ? [] : get().generations, 
-                    hasMore: false, 
-                    isLoading: false 
+                set({
+                    generations: reset ? [] : get().generations,
+                    hasMore: false,
+                    isLoading: false,
                 });
             }
         } catch (err) {
@@ -1273,6 +1303,110 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
             return data.url as string;
         } catch (err) {
             set({ error: err instanceof Error ? err.message : 'Upload error' });
+            return null;
+        }
+    },
+
+    // Image Tools - Upscale
+    upscaleTopaz: async (params) => {
+        set({ error: null });
+        try {
+            const { data, error } = await api.POST('/upscale/topaz/upscale', {
+                body: params,
+            });
+
+            if (error || !data) {
+                const errData = error as { error?: string; message?: string } | undefined;
+                set({ error: errData?.message || errData?.error || 'Upscale failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'topaz-upscale',
+                status: 'processing',
+                prompt: `Upscale ${params.upscale_factor}x`,
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Upscale error' });
+            return null;
+        }
+    },
+
+    upscaleRecraft: async (params) => {
+        set({ error: null });
+        try {
+            const { data, error } = await api.POST('/upscale/recraft/upscale', {
+                body: params,
+            });
+
+            if (error || !data) {
+                const errData = error as { error?: string; message?: string } | undefined;
+                set({ error: errData?.message || errData?.error || 'Upscale failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'recraft-upscale',
+                status: 'processing',
+                prompt: 'Recraft AI Upscale',
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Upscale error' });
+            return null;
+        }
+    },
+
+    // Image Tools - Background Removal
+    removeBackground: async (params) => {
+        set({ error: null });
+        try {
+            const { data, error } = await api.POST('/background-removal/recraft/remove', {
+                body: params,
+            });
+
+            if (error || !data) {
+                const errData = error as { error?: string; message?: string } | undefined;
+                set({ error: errData?.message || errData?.error || 'Background removal failed' });
+                return null;
+            }
+
+            const genData = data as { id: string; status: string; cost_credits: number };
+            const optimisticGen: Generation = {
+                id: genData.id,
+                type: 'image',
+                model: 'recraft-bg-removal',
+                status: 'processing',
+                prompt: 'Remove Background',
+                cost_credits: genData.cost_credits,
+                created_at: new Date().toISOString(),
+            };
+
+            get().addGeneration(optimisticGen);
+            get().pollGenerationStatus(genData.id);
+
+            return genData.id;
+        } catch (err) {
+            set({ error: err instanceof Error ? err.message : 'Background removal error' });
             return null;
         }
     },

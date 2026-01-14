@@ -1,6 +1,6 @@
 /**
  * AI Wrapper Backend API Types
- * Generated from OpenAPI spec: 2026-01-13T20:15:51.811Z
+ * Generated from OpenAPI spec: 2026-01-14T18:16:46.216Z
  * 
  * This file contains TypeScript types generated from your OpenAPI specification.
  * Use with openapi-fetch or openapi-typescript-fetch for full type-safety.
@@ -952,6 +952,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/likes/toggle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postLikesToggle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postLikes"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/{generationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteLikesByGenerationId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/status/{generationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLikesStatusByGenerationId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/my": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getLikesMy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getFolders"];
+        put?: never;
+        post: operations["postFolders"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getFoldersById"];
+        put?: never;
+        post?: never;
+        delete: operations["deleteFoldersById"];
+        options?: never;
+        head?: never;
+        patch: operations["patchFoldersById"];
+        trace?: never;
+    };
+    "/folders/{id}/items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["postFoldersByIdItems"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/{id}/items/{generationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["deleteFoldersByIdItemsByGenerationId"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/folders/for-generation/{generationId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["getFoldersFor-generationByGenerationId"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/image/nano-banana/generate": {
         parameters: {
             query?: never;
@@ -1783,7 +1943,7 @@ export interface paths {
         put?: never;
         /**
          * Upscale image with Topaz
-         * @description Upscales an image using Topaz Labs. Factors: 1x, 2x, 4x, 8x. Max 10MB input.
+         * @description Upscales an image using Topaz Labs AI. Supported factors: 1x, 2x, 4x, 8x. Max input size: 10MB. Supported formats: JPEG, PNG, WebP.
          */
         post: operations["postUpscaleTopazUpscale"];
         delete?: never;
@@ -1803,7 +1963,7 @@ export interface paths {
         put?: never;
         /**
          * Upscale image with Recraft
-         * @description High-quality crisp upscaling. Max 10MB input.
+         * @description High-quality crisp upscaling using Recraft AI. Automatically enhances image clarity and detail. Max input size: 10MB. Supported formats: JPEG, PNG, WebP.
          */
         post: operations["postUpscaleRecraftUpscale"];
         delete?: never;
@@ -1823,7 +1983,7 @@ export interface paths {
         put?: never;
         /**
          * Remove background with Recraft
-         * @description Removes background from an image. Max 5MB, max 16MP, 256-4096px dimensions.
+         * @description Removes background from an image using Recraft AI, returning a transparent PNG. Constraints: max 5MB file size, max 16 megapixels, dimensions between 256-4096px. Supported formats: PNG, JPG, WebP.
          */
         post: operations["postBackground-removalRecraftRemove"];
         delete?: never;
@@ -4454,6 +4614,1160 @@ export interface operations {
             };
         };
     };
+    postLikesToggle: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    generation_id: string;
+                };
+                "multipart/form-data": {
+                    generation_id: string;
+                };
+                "text/plain": {
+                    generation_id: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "multipart/form-data": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "text/plain": {
+                        error: string;
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    postLikes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    generation_id: string;
+                };
+                "multipart/form-data": {
+                    generation_id: string;
+                };
+                "text/plain": {
+                    generation_id: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "multipart/form-data": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "text/plain": {
+                        error: string;
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    deleteLikesByGenerationId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                generationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    getLikesStatusByGenerationId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                generationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            liked: boolean;
+                            likesCount: number;
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    getLikesMy: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            generation_ids: string[];
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            generation_ids: string[];
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            generation_ids: string[];
+                        };
+                    } | {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "multipart/form-data": {
+                        error: string;
+                        success?: boolean;
+                    };
+                    "text/plain": {
+                        error: string;
+                        success?: boolean;
+                    };
+                };
+            };
+        };
+    };
+    getFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                        }[];
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                        }[];
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                        }[];
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    postFolders: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name: string;
+                };
+                "multipart/form-data": {
+                    name: string;
+                };
+                "text/plain": {
+                    name: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    getFoldersById: {
+        parameters: {
+            query?: {
+                limit?: string;
+                offset?: string;
+            };
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                            items: {
+                                id: string;
+                                userId: string;
+                                type: string;
+                                internalModelId: string;
+                                provider: string;
+                                providerKind: string;
+                                providerTaskId: (string | null) | null;
+                                status: string;
+                                prompt: string;
+                                inputJson: (unknown | null) | null;
+                                providerParamJson: (unknown | null) | null;
+                                providerResultJson: (unknown | null) | null;
+                                resultAssetsJson: (unknown | null) | null;
+                                costCredits: number;
+                                errorCode: (string | null) | null;
+                                errorMsg: (string | null) | null;
+                                createdAt: Record<string, never> | string | number;
+                                updatedAt: Record<string, never> | string | number;
+                                completedAt: ((Record<string, never> | string | number) | null) | null;
+                            }[];
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                            items: {
+                                id: string;
+                                userId: string;
+                                type: string;
+                                internalModelId: string;
+                                provider: string;
+                                providerKind: string;
+                                providerTaskId: (string | null) | null;
+                                status: string;
+                                prompt: string;
+                                inputJson: (unknown | null) | null;
+                                providerParamJson: (unknown | null) | null;
+                                providerResultJson: (unknown | null) | null;
+                                resultAssetsJson: (unknown | null) | null;
+                                costCredits: number;
+                                errorCode: (string | null) | null;
+                                errorMsg: (string | null) | null;
+                                createdAt: Record<string, never> | string | number;
+                                updatedAt: Record<string, never> | string | number;
+                                completedAt: ((Record<string, never> | string | number) | null) | null;
+                            }[];
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                            itemCount: number;
+                            items: {
+                                id: string;
+                                userId: string;
+                                type: string;
+                                internalModelId: string;
+                                provider: string;
+                                providerKind: string;
+                                providerTaskId: (string | null) | null;
+                                status: string;
+                                prompt: string;
+                                inputJson: (unknown | null) | null;
+                                providerParamJson: (unknown | null) | null;
+                                providerResultJson: (unknown | null) | null;
+                                resultAssetsJson: (unknown | null) | null;
+                                costCredits: number;
+                                errorCode: (string | null) | null;
+                                errorMsg: (string | null) | null;
+                                createdAt: Record<string, never> | string | number;
+                                updatedAt: Record<string, never> | string | number;
+                                completedAt: ((Record<string, never> | string | number) | null) | null;
+                            }[];
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    deleteFoldersById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            deleted: boolean;
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            deleted: boolean;
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            deleted: boolean;
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    patchFoldersById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    name?: string;
+                };
+                "multipart/form-data": {
+                    name?: string;
+                };
+                "text/plain": {
+                    name?: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    postFoldersByIdItems: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    generation_id: string;
+                };
+                "multipart/form-data": {
+                    generation_id: string;
+                };
+                "text/plain": {
+                    generation_id: string;
+                };
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                    };
+                };
+            };
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    deleteFoldersByIdItemsByGenerationId: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                generationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            removed: boolean;
+                        };
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            removed: boolean;
+                        };
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            removed: boolean;
+                        };
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
+    "getFoldersFor-generationByGenerationId": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                generationId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        }[];
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        }[];
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: true;
+                        data: {
+                            id: string;
+                            userId: string;
+                            name: string;
+                            createdAt: Record<string, never> | string | number;
+                            updatedAt: Record<string, never> | string | number;
+                        }[];
+                    };
+                };
+            };
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                    };
+                };
+            };
+        };
+    };
     "postImageNano-bananaGenerate": {
         parameters: {
             query?: never;
@@ -6976,17 +8290,26 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image_url: string;
                     upscale_factor: "1" | "2" | "4" | "8";
                 };
                 "multipart/form-data": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image_url: string;
                     upscale_factor: "1" | "2" | "4" | "8";
                 };
                 "text/plain": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image_url: string;
                     upscale_factor: "1" | "2" | "4" | "8";
                 };
@@ -6999,22 +8322,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "multipart/form-data": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "text/plain": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
+                    };
+                };
+            };
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
                     };
                 };
             };
@@ -7030,15 +8409,24 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image: string;
                 };
                 "multipart/form-data": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image: string;
                 };
                 "text/plain": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to upscale (JPEG, PNG, WebP, max 10MB)
+                     */
                     image: string;
                 };
             };
@@ -7050,22 +8438,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "multipart/form-data": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "text/plain": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
+                    };
+                };
+            };
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
                     };
                 };
             };
@@ -7081,15 +8525,24 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to process (PNG, JPG, WebP). Max 5MB, max 16MP, dimensions 256-4096px.
+                     */
                     image: string;
                 };
                 "multipart/form-data": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to process (PNG, JPG, WebP). Max 5MB, max 16MP, dimensions 256-4096px.
+                     */
                     image: string;
                 };
                 "text/plain": {
-                    /** Format: uri */
+                    /**
+                     * Format: uri
+                     * @description URL of image to process (PNG, JPG, WebP). Max 5MB, max 16MP, dimensions 256-4096px.
+                     */
                     image: string;
                 };
             };
@@ -7101,22 +8554,78 @@ export interface operations {
                 };
                 content: {
                     "application/json": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "multipart/form-data": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
                     };
                     "text/plain": {
+                        /** @description Generation ID for tracking */
                         id: string;
                         /** @constant */
                         status: "processing";
+                        /** @description Credits consumed for this operation */
                         cost_credits: number;
+                    };
+                };
+            };
+            402: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                };
+            };
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "multipart/form-data": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
+                    };
+                    "text/plain": {
+                        /** @constant */
+                        success: false;
+                        error: string;
+                        message?: string;
                     };
                 };
             };

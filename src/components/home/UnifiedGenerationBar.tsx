@@ -3,7 +3,20 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Image as ImageIcon, Video as VideoIcon, Music, Plus, Loader2, Zap, ChevronDown, X, Settings2, Maximize, Clock, Sparkles } from 'lucide-react';
+import {
+    Image as ImageIcon,
+    Video as VideoIcon,
+    Music,
+    Plus,
+    Loader2,
+    Zap,
+    ChevronDown,
+    X,
+    Settings2,
+    Maximize,
+    Clock,
+    Sparkles,
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/language-context';
 import { useModelsStore } from '@/stores/models-store';
@@ -18,11 +31,11 @@ export function UnifiedGenerationBar() {
     const [prompt, setPrompt] = useState('');
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
     const { imageModels, videoModels, fetchModels } = useModelsStore();
-    
+
     // Image settings
     const [aspectRatio, setAspectRatio] = useState('1:1');
     const [quality, setQuality] = useState('standard');
-    
+
     // Video settings
     const [duration, setDuration] = useState('5s');
     const [videoQuality, setVideoQuality] = useState('720p');
@@ -68,10 +81,10 @@ export function UnifiedGenerationBar() {
     // Sync default model when mode or models change
     useEffect(() => {
         if (mode === 'image' && imageModels.length > 0) {
-            const defaultModel = imageModels.find(m => m.id.includes('grok')) || imageModels[0];
+            const defaultModel = imageModels.find((m) => m.id.includes('grok')) || imageModels[0];
             setSelectedModelId(defaultModel.id);
         } else if (mode === 'video' && videoModels.length > 0) {
-            const defaultModel = videoModels.find(m => m.id.includes('grok')) || videoModels[0];
+            const defaultModel = videoModels.find((m) => m.id.includes('grok')) || videoModels[0];
             setSelectedModelId(defaultModel.id);
         }
     }, [mode, imageModels, videoModels]);
@@ -80,7 +93,7 @@ export function UnifiedGenerationBar() {
         if (!prompt.trim()) return;
         const target = mode === 'image' ? '/app/create/image' : '/app/create/video';
         let url = `${target}?prompt=${encodeURIComponent(prompt)}&model=${selectedModelId}`;
-        
+
         if (mode === 'image') {
             url += `&aspect_ratio=${aspectRatio}&quality=${quality}`;
         } else if (mode === 'video') {
@@ -108,21 +121,21 @@ export function UnifiedGenerationBar() {
     return (
         <div className="w-full max-w-2xl mx-auto space-y-6">
             <div className="flex items-center justify-center gap-2">
-                <Link 
+                <Link
                     href="/app/create/image"
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
                     <ImageIcon className="w-3.5 h-3.5" />
                     {language === 'ru' ? 'Изображение' : 'Image'}
                 </Link>
-                <Link 
+                <Link
                     href="/app/create/video"
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
                     <VideoIcon className="w-3.5 h-3.5" />
                     {language === 'ru' ? 'Видео' : 'Video'}
                 </Link>
-                <Link 
+                <Link
                     href="/app/create/audio"
                     className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
@@ -131,29 +144,33 @@ export function UnifiedGenerationBar() {
                 </Link>
             </div>
 
-            <div 
+            <div
                 className={`glass border transition-all rounded-[32px] p-4 shadow-2xl relative ${
-                    isDragging 
-                        ? 'border-[#6F00FF] border-2 border-dashed shadow-[0_0_50px_rgba(111,0,255,0.2)]' 
+                    isDragging
+                        ? 'border-[#6F00FF] border-2 border-dashed shadow-[0_0_50px_rgba(111,0,255,0.2)]'
                         : 'border-white/10'
                 }`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
             >
-                <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    className="hidden" 
-                    accept="image/*" 
-                    onChange={handleFileChange} 
+                <input
+                    type="file"
+                    ref={fileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleFileChange}
                 />
 
                 {attachedImage && (
                     <div className="mb-4">
                         <div className="relative w-20 h-20 rounded-2xl overflow-hidden group">
-                            <img src={attachedImage} className="w-full h-full object-cover" alt="Preview" />
-                            <button 
+                            <img
+                                src={attachedImage}
+                                className="w-full h-full object-cover"
+                                alt="Preview"
+                            />
+                            <button
                                 onClick={() => setAttachedImage(null)}
                                 className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
                             >
@@ -166,9 +183,14 @@ export function UnifiedGenerationBar() {
                 <textarea
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    placeholder={mode === 'image' 
-                        ? (language === 'ru' ? "Опишите, что хотите сделать или приложите изображение" : "Describe what you want to do or attach an image")
-                        : (language === 'ru' ? "Опишите, что хотите сделать или приложите изображение" : "Describe what you want to do or attach an image")
+                    placeholder={
+                        mode === 'image'
+                            ? language === 'ru'
+                                ? 'Опишите, что хотите сделать или приложите изображение'
+                                : 'Describe what you want to do or attach an image'
+                            : language === 'ru'
+                            ? 'Опишите, что хотите сделать или приложите изображение'
+                            : 'Describe what you want to do or attach an image'
                     }
                     className="w-full bg-transparent resize-none outline-none text-white placeholder:text-white/20 min-h-[44px] font-medium text-sm mb-4 leading-relaxed"
                     rows={1}
@@ -188,7 +210,11 @@ export function UnifiedGenerationBar() {
                                 className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/10"
                                 title={mode === 'image' ? 'Switch to Video' : 'Switch to Image'}
                             >
-                                {mode === 'image' ? <ImageIcon className="w-4 h-4" /> : <VideoIcon className="w-4 h-4" />}
+                                {mode === 'image' ? (
+                                    <ImageIcon className="w-4 h-4" />
+                                ) : (
+                                    <VideoIcon className="w-4 h-4" />
+                                )}
                             </button>
 
                             <ModelSelector
@@ -201,10 +227,10 @@ export function UnifiedGenerationBar() {
                         {mode === 'image' ? (
                             <AspectRatioSelector
                                 options={[
-                                    { id: '1:1', name: '1:1', icon: Maximize },
-                                    { id: '16:9', name: '16:9', icon: Maximize },
-                                    { id: '9:16', name: '9:16', icon: Maximize },
-                                    { id: '4:5', name: '4:5', icon: Maximize },
+                                    { id: '1:1', name: '1:1' },
+                                    { id: '16:9', name: '16:9' },
+                                    { id: '9:16', name: '9:16' },
+                                    { id: '4:5', name: '4:5' },
                                 ]}
                                 value={aspectRatio}
                                 onChange={setAspectRatio}
@@ -241,4 +267,3 @@ export function UnifiedGenerationBar() {
         </div>
     );
 }
-

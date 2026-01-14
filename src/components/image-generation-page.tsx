@@ -26,13 +26,8 @@ export function ImageGenerationPage() {
 
     // Stores
     const { imageModels, fetchModels } = useModelsStore();
-    const {
-        generations,
-        generateImageGeneric,
-        uploadImage,
-        fetchHistory,
-        toggleFavorite,
-    } = useGenerationStore();
+    const { generations, generateImageGeneric, uploadImage, fetchHistory, toggleFavorite } =
+        useGenerationStore();
 
     // Local state
     const [prompt, setPrompt] = useState('');
@@ -85,7 +80,9 @@ export function ImageGenerationPage() {
                 setPrompt(currentPrompt);
             }
             if (modelParam) {
-                const foundModel = imageModels.find((m) => m.id === modelParam || m.name === modelParam);
+                const foundModel = imageModels.find(
+                    (m) => m.id === modelParam || m.name === modelParam
+                );
                 if (foundModel) {
                     currentModel = foundModel.id;
                     setModel(currentModel);
@@ -97,7 +94,9 @@ export function ImageGenerationPage() {
                 setTimeout(() => {
                     handleGenerate();
                     // Clear the action param from URL to avoid re-triggering on refresh
-                    const newUrl = window.location.pathname + (currentPrompt ? `?prompt=${encodeURIComponent(currentPrompt)}` : '');
+                    const newUrl =
+                        window.location.pathname +
+                        (currentPrompt ? `?prompt=${encodeURIComponent(currentPrompt)}` : '');
                     window.history.replaceState({}, '', newUrl);
                 }, 500);
             }
@@ -158,12 +157,12 @@ export function ImageGenerationPage() {
         setPrompt(gen.prompt);
         const foundModel = imageModels.find((m) => m.id === gen.model || m.name === gen.model);
         if (foundModel) setModel(foundModel.id);
-        
+
         setIsGenerating(true);
         try {
             const generationId = await generateImageGeneric(foundModel?.id || gen.model, {
                 prompt: gen.prompt,
-                aspect_ratio: gen.aspect_ratio || aspectRatio,
+                aspect_ratio: (gen as any).aspect_ratio || aspectRatio,
                 resolution: resolution,
             });
 
@@ -223,9 +222,18 @@ export function ImageGenerationPage() {
         <div className="max-w-full mx-auto pb-40 relative px-0 sm:px-4">
             <BackgroundEllipses />
 
-            <div className={`sticky top-0 z-10 w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4 transition-all duration-300 ${selectedImage ? 'opacity-0 pointer-events-none -translate-y-4' : 'opacity-100 pointer-events-auto translate-y-0'}`}>
+            <div
+                className={`sticky top-0 z-10 w-full px-4 sm:px-6 py-4 flex items-center justify-between gap-4 transition-all duration-300 ${
+                    selectedImage
+                        ? 'opacity-0 pointer-events-none -translate-y-4'
+                        : 'opacity-100 pointer-events-auto translate-y-0'
+                }`}
+            >
                 <div className="flex items-center gap-4 sm:gap-6">
-                    <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-white/5 border border-white/10">
+                    <Link
+                        href="/app"
+                        className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-white/5 border border-white/10"
+                    >
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
                     <h1 className="text-3xl font-black uppercase tracking-tight">
@@ -242,9 +250,10 @@ export function ImageGenerationPage() {
                 <div
                     className="grid gap-3 sm:gap-6"
                     style={{
-                        gridTemplateColumns: gridSize[0] < 250 
-                            ? 'repeat(auto-fill, minmax(150px, 1fr))' 
-                            : `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
+                        gridTemplateColumns:
+                            gridSize[0] < 250
+                                ? 'repeat(auto-fill, minmax(150px, 1fr))'
+                                : `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
                     }}
                 >
                     {isGenerating && <GeneratingPlaceholder aspectRatio="square" />}

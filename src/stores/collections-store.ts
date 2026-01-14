@@ -15,19 +15,20 @@ export interface Collection {
 }
 
 // Helper to map backend collection data to our frontend interface
-const mapCollection = (data: any, fallbackName?: string): Collection => {
-    if (!data) return {
-        id: '',
-        name: fallbackName || '',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        count: 0,
-        items: []
-    };
+const mapCollection = (data: any): Collection => {
+    if (!data)
+        return {
+            id: '',
+            name: '',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+            count: 0,
+            items: [],
+        };
 
     return {
         id: String(data.id || data._id || data.uuid || Math.random().toString(36).substring(7)),
-        name: data.name || data.title || data.label || fallbackName || '',
+        name: data.name || data.title || data.label || '',
         description: data.description || '',
         created_at: data.created_at || data.createdAt || new Date().toISOString(),
         updated_at: data.updated_at || data.updatedAt || new Date().toISOString(),
@@ -105,7 +106,7 @@ export const useCollectionsStore = create<CollectionsState>()((set, get) => ({
                 return null;
             }
             if (data) {
-                const newCollection = mapCollection(data, name);
+                const newCollection = mapCollection(data);
                 set((state) => ({ collections: [newCollection, ...state.collections] }));
                 return newCollection;
             }
@@ -174,9 +175,9 @@ export const useCollectionsStore = create<CollectionsState>()((set, get) => ({
             }
             // Update local count if possible
             set((state) => ({
-                collections: state.collections.map((c) => 
+                collections: state.collections.map((c) =>
                     c.id === collectionId ? { ...c, count: (c.count || 0) + 1 } : c
-                )
+                ),
             }));
             return true;
         } catch (err) {
@@ -196,9 +197,9 @@ export const useCollectionsStore = create<CollectionsState>()((set, get) => ({
                 return false;
             }
             set((state) => ({
-                collections: state.collections.map((c) => 
+                collections: state.collections.map((c) =>
                     c.id === collectionId ? { ...c, count: Math.max(0, (c.count || 0) - 1) } : c
-                )
+                ),
             }));
             return true;
         } catch (err) {
@@ -217,5 +218,5 @@ export const useCollectionsStore = create<CollectionsState>()((set, get) => ({
         } catch {
             return [];
         }
-    }
+    },
 }));

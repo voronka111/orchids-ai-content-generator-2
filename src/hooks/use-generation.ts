@@ -12,6 +12,9 @@ import {
     type KlingImageToVideoParams,
     type WanParams,
     type SunoParams,
+    type TopazUpscaleParams,
+    type RecraftUpscaleParams,
+    type RemoveBackgroundParams,
 } from '@/stores/generation-store';
 
 export function useGeneration() {
@@ -45,6 +48,10 @@ export function useGeneration() {
 
     const uploadImage = useGenerationStore((state) => state.uploadImage);
     const uploadVideo = useGenerationStore((state) => state.uploadVideo);
+
+    const upscaleTopaz = useGenerationStore((state) => state.upscaleTopaz);
+    const upscaleRecraft = useGenerationStore((state) => state.upscaleRecraft);
+    const removeBackground = useGenerationStore((state) => state.removeBackground);
 
     const processingGenerations = generations.filter(
         (g) => g.status === 'processing' || g.status === 'queued'
@@ -84,6 +91,10 @@ export function useGeneration() {
 
         uploadImage,
         uploadVideo,
+
+        upscaleTopaz,
+        upscaleRecraft,
+        removeBackground,
     };
 }
 
@@ -112,4 +123,7 @@ export type {
     KlingImageToVideoParams,
     WanParams,
     SunoParams,
+    TopazUpscaleParams,
+    RecraftUpscaleParams,
+    RemoveBackgroundParams,
 };

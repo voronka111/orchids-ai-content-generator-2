@@ -10,8 +10,13 @@ import {
 } from '@/components/ui/select';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
 
+interface DurationOption {
+    id: string;
+    name: string;
+}
+
 interface DurationSelectorProps {
-    options: string[];
+    options: string[] | DurationOption[];
     value: string;
     onChange: (value: string) => void;
     open?: boolean;
