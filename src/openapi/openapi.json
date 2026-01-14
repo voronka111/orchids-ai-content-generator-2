@@ -10983,12 +10983,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "generation_id": {
-                    "type": "string"
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
-                  "generation_id"
+                  "generation_ids"
                 ]
               }
             },
@@ -10996,12 +10999,15 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "generation_id": {
-                    "type": "string"
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
-                  "generation_id"
+                  "generation_ids"
                 ]
               }
             },
@@ -11009,20 +11015,21 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "generation_id": {
-                    "type": "string"
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
                   }
                 },
                 "required": [
-                  "generation_id"
+                  "generation_ids"
                 ]
               }
             }
           }
         }
-      }
-    },
-    "/folders/{id}/items/{generationId}": {
+      },
       "delete": {
         "parameters": [
           {
@@ -11031,14 +11038,6 @@
             },
             "in": "path",
             "name": "id",
-            "required": true
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "path",
-            "name": "generationId",
             "required": true
           }
         ],
@@ -11184,10 +11183,63 @@
             }
           }
         },
-        "operationId": "deleteFoldersByIdItemsByGenerationId",
+        "operationId": "deleteFoldersByIdItems",
         "tags": [
           "Folders"
-        ]
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "generation_ids"
+                ]
+              }
+            },
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "generation_ids"
+                ]
+              }
+            },
+            "text/plain": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "generation_ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "generation_ids"
+                ]
+              }
+            }
+          }
+        }
       }
     },
     "/folders/for-generation/{generationId}": {

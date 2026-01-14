@@ -10,13 +10,13 @@ import { Input } from '@/components/ui/input';
 import { useGenerationStore } from '@/stores/generation-store';
 
 interface AddToCollectionModalProps {
-    generationId: string;
+    generationIds: string[];
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
 export function AddToCollectionModal({
-    generationId,
+    generationIds,
     open,
     onOpenChange,
 }: AddToCollectionModalProps) {
@@ -36,30 +36,31 @@ export function AddToCollectionModal({
     const [isCreating, setIsCreating] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
 
-    const generation = generations.find((g) => g.id === generationId);
+    const firstGenerationId = generationIds[0];
+    const generation = generations.find((g) => g.id === firstGenerationId);
     const isFavorite = generation?.is_favorite || false;
 
     useEffect(() => {
-        if (open) {
+        if (open && firstGenerationId) {
             setIsLoading(true);
-            Promise.all([fetchFolders(), getFoldersForGeneration(generationId)]).then(
+            Promise.all([fetchFolders(), getFoldersForGeneration(firstGenerationId)]).then(
                 ([_, currentFolders]) => {
                     setSelectedFolderIds(currentFolders.map((f) => f.id));
                     setIsLoading(false);
                 }
             );
         }
-    }, [open, generationId]);
+    }, [open, firstGenerationId]);
 
     const handleToggleFolder = async (folderId: string) => {
         const isSelected = selectedFolderIds.includes(folderId);
         if (isSelected) {
-            const success = await removeFromFolder(folderId, generationId);
+            const success = await removeFromFolder(folderId, generationIds);
             if (success) {
                 setSelectedFolderIds((prev) => prev.filter((id) => id !== folderId));
             }
         } else {
-            const success = await addToFolder(folderId, generationId);
+            const success = await addToFolder(folderId, generationIds);
             if (success) {
                 setSelectedFolderIds((prev) => [...prev, folderId]);
             }
@@ -72,13 +73,20 @@ export function AddToCollectionModal({
         const folderName = newFolderName.trim();
         const newFolder = await createFolder(folderName);
         if (newFolder) {
-            await addToFolder(newFolder.id, generationId);
+            await addToFolder(newFolder.id, generationIds);
             setSelectedFolderIds((prev) => [...prev, newFolder.id]);
             setNewFolderName('');
             // Refresh folders to ensure sidebar is updated
             fetchFolders();
         }
         setIsCreating(false);
+    };
+
+    const handleToggleFavorite = async () => {
+        // Toggle favorite for all selected generations
+        for (const id of generationIds) {
+            await toggleFavorite(id);
+        }
     };
 
     return (
@@ -93,7 +101,7 @@ export function AddToCollectionModal({
                 <div className="p-6 space-y-4">
                     {/* Favorites shortcut */}
                     <button
-                        onClick={() => toggleFavorite(generationId)}
+                        onClick={handleToggleFavorite}
                         className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
                             isFavorite ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-white/60'
                         }`}

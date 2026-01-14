@@ -377,7 +377,7 @@ export function ImageDetailDialog({
                 </div>
 
                 <AddToCollectionModal
-                    generationId={image.id}
+                    generationIds={[image.id]}
                     open={isAddToCollectionOpen}
                     onOpenChange={setIsAddToCollectionOpen}
                 />

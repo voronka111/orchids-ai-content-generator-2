@@ -283,7 +283,7 @@ export function VideoDetailDialog({
                 </div>
 
                 <AddToCollectionModal
-                    generationId={video.id}
+                    generationIds={[video.id]}
                     open={isAddToCollectionOpen}
                     onOpenChange={setIsAddToCollectionOpen}
                 />

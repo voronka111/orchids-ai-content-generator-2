@@ -24,8 +24,8 @@ interface FoldersState {
     createFolder: (name: string) => Promise<Folder | null>;
     renameFolder: (id: string, name: string) => Promise<boolean>;
     deleteFolder: (id: string) => Promise<boolean>;
-    addToFolder: (folderId: string, generationId: string) => Promise<boolean>;
-    removeFromFolder: (folderId: string, generationId: string) => Promise<boolean>;
+    addToFolder: (folderId: string, generationIds: string | string[]) => Promise<boolean>;
+    removeFromFolder: (folderId: string, generationIds: string | string[]) => Promise<boolean>;
     getFoldersForGeneration: (generationId: string) => Promise<Folder[]>;
 }
 
@@ -190,23 +190,24 @@ export const useFoldersStore = create<FoldersState>()((set, get) => ({
         }
     },
 
-    addToFolder: async (folderId: string, generationId: string) => {
+    addToFolder: async (folderId: string, generationIds: string | string[]) => {
+        const ids = Array.isArray(generationIds) ? generationIds : [generationIds];
         set({ error: null });
         try {
             const { error } = await api.POST('/folders/{id}/items', {
                 params: { path: { id: folderId } },
-                body: { generation_id: generationId },
+                body: { generation_ids: ids } as any,
             });
 
             if (error) {
-                set({ error: 'Failed to add item to folder' });
+                set({ error: 'Failed to add items to folder' });
                 return false;
             }
 
             // Update local count
             set((state) => ({
                 folders: state.folders.map((f) =>
-                    f.id === folderId ? { ...f, itemCount: f.itemCount + 1 } : f
+                    f.id === folderId ? { ...f, itemCount: f.itemCount + ids.length } : f
                 ),
             }));
             return true;
@@ -216,21 +217,23 @@ export const useFoldersStore = create<FoldersState>()((set, get) => ({
         }
     },
 
-    removeFromFolder: async (folderId: string, generationId: string) => {
+    removeFromFolder: async (folderId: string, generationIds: string | string[]) => {
+        const ids = Array.isArray(generationIds) ? generationIds : [generationIds];
         set({ error: null });
         try {
-            const { error } = await api.DELETE('/folders/{id}/items/{generationId}', {
-                params: { path: { id: folderId, generationId } },
+            const { error } = await api.DELETE('/folders/{id}/items', {
+                params: { path: { id: folderId } },
+                body: { generation_ids: ids } as any,
             });
 
             if (error) {
-                set({ error: 'Failed to remove item from folder' });
+                set({ error: 'Failed to remove items from folder' });
                 return false;
             }
 
             set((state) => ({
                 folders: state.folders.map((f) =>
-                    f.id === folderId ? { ...f, itemCount: Math.max(0, f.itemCount - 1) } : f
+                    f.id === folderId ? { ...f, itemCount: Math.max(0, f.itemCount - ids.length) } : f
                 ),
             }));
             return true;

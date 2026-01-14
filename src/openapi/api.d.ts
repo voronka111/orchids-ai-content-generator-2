@@ -1,6 +1,6 @@
 /**
  * AI Wrapper Backend API Types
- * Generated from OpenAPI spec: 2026-01-14T19:20:30.377Z
+ * Generated from OpenAPI spec: 2026-01-14T19:53:01.786Z
  * 
  * This file contains TypeScript types generated from your OpenAPI specification.
  * Use with openapi-fetch or openapi-typescript-fetch for full type-safety.
@@ -978,23 +978,7 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["postFoldersByIdItems"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/folders/{id}/items/{generationId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete: operations["deleteFoldersByIdItemsByGenerationId"];
+        delete: operations["deleteFoldersByIdItems"];
         options?: never;
         head?: never;
         patch?: never;
@@ -5225,13 +5209,13 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": {
-                    generation_id: string;
+                    generation_ids: string[];
                 };
                 "multipart/form-data": {
-                    generation_id: string;
+                    generation_ids: string[];
                 };
                 "text/plain": {
-                    generation_id: string;
+                    generation_ids: string[];
                 };
             };
         };
@@ -5301,17 +5285,28 @@ export interface operations {
             };
         };
     };
-    deleteFoldersByIdItemsByGenerationId: {
+    deleteFoldersByIdItems: {
         parameters: {
             query?: never;
             header?: never;
             path: {
                 id: string;
-                generationId: string;
             };
             cookie?: never;
         };
-        requestBody?: never;
+        requestBody: {
+            content: {
+                "application/json": {
+                    generation_ids: string[];
+                };
+                "multipart/form-data": {
+                    generation_ids: string[];
+                };
+                "text/plain": {
+                    generation_ids: string[];
+                };
+            };
+        };
         responses: {
             200: {
                 headers: {

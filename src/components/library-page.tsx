@@ -20,6 +20,7 @@ import {
     Music,
 } from 'lucide-react';
 import { useLanguage } from '@/lib/language-context';
+import { AddToCollectionModal } from '@/components/library/AddToCollectionModal';
 import { useGenerationStore, Generation } from '@/stores/generation-store';
 import { useFoldersStore, Folder } from '@/stores/folders-store';
 import { Slider } from '@/components/ui/slider';
@@ -53,7 +54,7 @@ export function LibraryPage() {
     const router = useRouter();
 
     // Store
-    const { generations, toggleFavorite, fetchHistory } = useGenerationStore();
+    const { generations, toggleFavorite, fetchHistory, removeGeneration } = useGenerationStore();
     const { videoModels } = useModelsStore();
     const {
         folders,
@@ -63,6 +64,7 @@ export function LibraryPage() {
         renameFolder,
         deleteFolder,
         fetchFolderDetails,
+        removeFromFolder,
     } = useFoldersStore();
 
     // Local state
@@ -283,6 +285,45 @@ export function LibraryPage() {
     };
 
     const showFoldersInMain = false;
+
+    const [isBatchAddToCollectionOpen, setIsBatchAddToCollectionOpen] = useState(false);
+
+    const handleBatchDownload = () => {
+        selectedIds.forEach((id) => {
+            const gen = generations.find((g) => g.id === id);
+            if (gen && gen.result_assets && gen.result_assets[0]) {
+                const link = document.createElement('a');
+                link.href = gen.result_assets[0].url;
+                link.download = `${gen.type}-${gen.id}`;
+                link.click();
+            }
+        });
+        toast.success(
+            language === 'ru'
+                ? `Начато скачивание ${selectedIds.length} файлов`
+                : `Started downloading ${selectedIds.length} files`
+        );
+    };
+
+    const handleBatchDelete = async () => {
+        if (activeFolderId) {
+            // If in a folder, remove from that folder
+            const success = await removeFromFolder(activeFolderId, selectedIds);
+            if (success) {
+                toast.success(language === 'ru' ? 'Удалено из папки' : 'Removed from folder');
+                // Refresh folder content
+                fetchFolderDetails(activeFolderId).then((data: Folder | null) => {
+                    setActiveFolder(data);
+                });
+                setSelectedIds([]);
+            }
+        } else {
+            // Otherwise remove from main list (optimistic for now)
+            selectedIds.forEach((id) => removeGeneration(id));
+            toast.success(language === 'ru' ? 'Удалено' : 'Deleted');
+            setSelectedIds([]);
+        }
+    };
 
     return (
         <div className="relative min-h-screen -mt-6 sm:-mx-6 px-4 sm:px-8 py-8 overflow-hidden">
@@ -688,9 +729,18 @@ export function LibraryPage() {
                     <SelectionActionBar
                         selectedCount={selectedIds.length}
                         onClear={() => setSelectedIds([])}
+                        onDownload={handleBatchDownload}
+                        onDelete={handleBatchDelete}
+                        onAddToFolder={() => setIsBatchAddToCollectionOpen(true)}
                     />
                 )}
             </AnimatePresence>
+
+            <AddToCollectionModal
+                generationIds={selectedIds}
+                open={isBatchAddToCollectionOpen}
+                onOpenChange={setIsBatchAddToCollectionOpen}
+            />
 
             {/* Upgrade Modal */}
             <UpgradeModal open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen} />
