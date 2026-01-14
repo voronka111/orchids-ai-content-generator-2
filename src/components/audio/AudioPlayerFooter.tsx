@@ -121,13 +121,13 @@ export function AudioPlayerFooter({
                         <DropdownMenuContent
                             align="start"
                             side="top"
-                            className="bg-[#111] border-white/10 rounded-xl p-1 font-mono"
+                            className="bg-[#111] border-white/10 rounded-2xl p-2 font-mono"
                         >
                             {[0.8, 1.0, 1.2, 1.5].map((speed) => (
                                 <DropdownMenuItem
                                     key={speed}
                                     onClick={() => onPlaybackSpeedChange(speed)}
-                                    className={`text-[10px] font-bold p-2 rounded-lg cursor-pointer ${
+                                    className={`text-[10px] font-bold p-2.5 rounded-lg cursor-pointer ${
                                         playbackSpeed === speed ? 'bg-[#6F00FF]' : 'focus:bg-[#6F00FF]'
                                     }`}
                                 >

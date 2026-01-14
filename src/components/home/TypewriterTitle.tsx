@@ -44,10 +44,10 @@ export function TypewriterTitle({ phrases, prefix = 'Сделай' }: Typewriter
         <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xl sm:text-2xl font-black text-center flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
+            className="text-2xl sm:text-4xl font-mono uppercase text-center flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
         >
-            <span>{prefix}</span>
-            <span className="text-white/80">{text}</span>
+            <span className="font-bold">{prefix}</span>
+            <span className="text-white/80 font-normal">{text}</span>
             <span className="animate-pulse inline-block w-[2px] h-[0.7em] bg-[#6F00FF] align-middle" />
         </motion.h1>
     );

@@ -28,7 +28,7 @@ export function AspectRatioSelector({
 }: AspectRatioSelectorProps) {
     return (
         <Select value={value} onValueChange={onChange} open={open} onOpenChange={onOpenChange}>
-            <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-bold gap-3 hover:bg-white/10 transition-colors">
+            <SelectTrigger className="w-fit min-w-[70px] h-10 bg-white/5 border-none rounded-2xl px-4 text-xs font-medium gap-3 hover:bg-white/10 transition-colors">
                 <div className="flex items-center gap-3">
                     <AspectRatioIcon ratio={value} className="text-white" />
                     <span className="text-white">{value}</span>
@@ -38,14 +38,14 @@ export function AspectRatioSelector({
                 </VisuallyHidden>
             </SelectTrigger>
             <SelectContent
-                className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2"
+                className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-md p-2"
                 align="start"
             >
                 {options.map((ar) => (
                     <SelectItem
                         key={ar.id}
                         value={ar.id}
-                        className="rounded-xl py-2.5 font-medium"
+                        className="rounded-sm py-2.5 font-medium"
                     >
                         <div className="flex items-center gap-3">
                             <AspectRatioIcon ratio={ar.id} className="text-white/40" />

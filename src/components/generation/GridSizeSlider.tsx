@@ -18,15 +18,17 @@ export function GridSizeSlider({
 }: GridSizeSliderProps) {
     return (
         <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 w-24 sm:w-32">
+            <div className="flex items-center gap-3 w-32 sm:w-48">
+                <Minimize2 className="w-3.5 h-3.5 text-white/20" />
                 <Slider
                     value={value}
                     onValueChange={onChange}
                     max={max}
                     min={min}
-                    step={1}
+                    step={0.1}
                     className="flex-1 cursor-pointer"
                 />
+                <Maximize2 className="w-3.5 h-3.5 text-white/20" />
             </div>
         </div>
     );

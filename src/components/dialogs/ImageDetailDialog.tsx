@@ -4,20 +4,17 @@ import { useRouter } from 'next/navigation';
 import {
     X,
     Download,
-    RefreshCw,
     Heart,
     MoreHorizontal,
     FolderPlus,
     Trash2,
     Sparkles,
-    Image as ImageIcon,
-    ChevronUp,
-    ChevronDown,
     Play,
     Wand2,
     ChevronLeft,
     ChevronRight,
     Share2,
+    Copy,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -29,8 +26,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/lib/language-context';
 import { Generation } from '@/stores/generation-store';
-import { DiamondIcon } from '@/components/ui/diamond-icon';
 import { useEffect, useState, useCallback } from 'react';
+import { toast } from 'sonner';
+
+import { AddToCollectionModal } from '@/components/library/AddToCollectionModal';
 
 interface ImageDetailDialogProps {
     image: Generation | null;
@@ -38,6 +37,7 @@ interface ImageDetailDialogProps {
     onOpenChange: (open: boolean) => void;
     resolution: string;
     onRemix: (image: Generation) => void;
+    onMakeVariations?: (image: Generation) => void;
     onToggleLike: (id: string) => void;
     generations?: Generation[];
     onSelectImage?: (image: Generation) => void;
@@ -49,16 +49,16 @@ export function ImageDetailDialog({
     onOpenChange,
     resolution,
     onRemix,
+    onMakeVariations,
     onToggleLike,
     generations = [],
     onSelectImage,
 }: ImageDetailDialogProps) {
     const { language } = useLanguage();
     const router = useRouter();
-    const [showMoreInfo, setShowMoreInfo] = useState(false);
     const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
+    const [isAddToCollectionOpen, setIsAddToCollectionOpen] = useState(false);
 
-    // Reset asset index when image changes
     useEffect(() => {
         setSelectedAssetIndex(0);
     }, [image?.id]);
@@ -79,15 +79,12 @@ export function ImageDetailDialog({
         }
     }, [image, generations, onSelectImage]);
 
-    // Keyboard navigation
     useEffect(() => {
         if (!open) return;
-
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'ArrowLeft') handlePrevious();
             if (e.key === 'ArrowRight') handleNext();
         };
-
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [open, handlePrevious, handleNext]);
@@ -106,11 +103,19 @@ export function ImageDetailDialog({
     const handleCopyPrompt = (e: React.MouseEvent) => {
         e.preventDefault();
         navigator.clipboard.writeText(image.prompt);
+        toast.success(language === 'ru' ? 'Промпт скопирован' : 'Prompt copied');
     };
 
     const handleRemix = () => {
         onRemix(image);
         onOpenChange(false);
+    };
+
+    const handleMakeVariations = () => {
+        if (onMakeVariations) {
+            onMakeVariations(image);
+            onOpenChange(false);
+        }
     };
 
     const handleAnimate = () => {
@@ -126,165 +131,200 @@ export function ImageDetailDialog({
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent
-                className="fixed inset-0 w-full h-full max-w-none p-0 border-none bg-black overflow-y-auto sm:overflow-hidden"
+                className="fixed inset-0 w-full h-full max-w-none p-0 border-none bg-black overflow-hidden"
                 showCloseButton={false}
             >
                 <VisuallyHidden>
                     <DialogTitle>Image Details</DialogTitle>
                 </VisuallyHidden>
                 
-                <div className="flex flex-col h-full relative">
-                    {/* Header */}
-                    <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center pointer-events-none">
-                        <button
-                            onClick={() => onOpenChange(false)}
-                            className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all pointer-events-auto"
-                        >
-                            <X className="w-5 h-5" />
-                        </button>
-                        <div className="flex gap-2 pointer-events-auto">
-                             <button
-                                onClick={handlePrevious}
-                                className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all disabled:opacity-30"
-                                disabled={generations.findIndex((g) => g.id === image.id) === 0}
-                            >
-                                <ChevronLeft className="w-5 h-5" />
-                            </button>
-                            <button
-                                onClick={handleNext}
-                                className="p-2 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all disabled:opacity-30"
-                                disabled={generations.findIndex((g) => g.id === image.id) === generations.length - 1}
-                            >
-                                <ChevronRight className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
-                        {/* Image Section */}
-                        <div className="w-full bg-black flex items-center justify-center p-4 sm:p-12 min-h-[300px] sm:min-h-[500px] relative">
-                            <img
-                                src={currentAsset?.url || ''}
-                                alt=""
-                                className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-2xl"
-                            />
-
-                             {/* Variations Thumbnails */}
-                             {hasMultipleAssets && (
-                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-[90%] no-scrollbar">
-                                    {image.result_assets?.map((asset, index) => (
-                                        <button
-                                            key={index}
-                                            onClick={() => setSelectedAssetIndex(index)}
-                                            className={`relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
-                                                selectedAssetIndex === index
-                                                    ? 'border-[#6F00FF]'
-                                                    : 'border-transparent'
-                                            }`}
-                                        >
-                                            <img src={asset.url} alt="" className="w-full h-full object-cover" />
-                                        </button>
-                                    ))}
+                <div className="flex flex-col lg:flex-row h-full w-full relative">
+                    {/* Header Controls (Floating - Mobile Only) */}
+                    <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center pointer-events-none lg:hidden">
+                                <button
+                                    onClick={() => onOpenChange(false)}
+                                    className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all pointer-events-auto"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                                <div className="flex gap-2 pointer-events-auto">
+                                     <button
+                                        onClick={handlePrevious}
+                                        className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                        disabled={generations.findIndex((g) => g.id === image.id) === 0}
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                    <button
+                                        onClick={handleNext}
+                                        className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                        disabled={generations.findIndex((g) => g.id === image.id) === generations.length - 1}
+                                    >
+                                        <ChevronRight className="w-5 h-5" />
+                                    </button>
                                 </div>
-                            )}
+                            </div>
+
+                            {/* Left: Image Display (Desktop) / Top: Image Display (Mobile) */}
+                            <div className="flex-1 relative flex items-center justify-center bg-black p-4 lg:p-12 min-h-0">
+                                <img
+                                    src={currentAsset?.url || ''}
+                                    alt=""
+                                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl lg:rounded-3xl shadow-2xl transition-transform duration-300"
+                                />
+
+                                 {/* Variations Thumbnails */}
+                                 {hasMultipleAssets && (
+                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-[90%] scrollbar-hide">
+                                        {image.result_assets?.map((asset, index) => (
+                                            <button
+                                                key={index}
+                                                onClick={() => setSelectedAssetIndex(index)}
+                                                className={`relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
+                                                    selectedAssetIndex === index
+                                                        ? 'border-[#6F00FF]'
+                                                        : 'border-transparent'
+                                                }`}
+                                            >
+                                                <img src={asset.url} alt="" className="w-full h-full object-cover" />
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                    {/* Right: Info Panel (Desktop) / Bottom: Info Panel (Mobile) */}
+                    <div className="w-full lg:w-[450px] bg-[#0A0A0A] border-l border-white/5 flex flex-col h-[50vh] lg:h-full relative overflow-hidden">
+                        {/* Header with Navigation and Close (Desktop) */}
+                        <div className="hidden lg:flex items-center justify-between px-6 py-4 border-b border-white/5">
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handlePrevious}
+                                    className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                    disabled={generations.findIndex((g) => g.id === image.id) === 0}
+                                >
+                                    <ChevronLeft className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={handleNext}
+                                    className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                    disabled={generations.findIndex((g) => g.id === image.id) === generations.length - 1}
+                                >
+                                    <ChevronRight className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <button
+                                onClick={() => onOpenChange(false)}
+                                className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
                         </div>
 
-                        {/* Info Section */}
-                        <div className="w-full max-w-2xl mx-auto px-6 pb-40">
-                            <div className="space-y-8 py-8">
-                                <div>
-                                    <div className="flex items-center justify-between mb-4">
-                                        <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2">
-                                            <Sparkles className="w-3.5 h-3.5" />
-                                            {language === 'ru' ? 'Промпт' : 'Prompt'}
-                                        </h3>
-                                        <button
-                                            onClick={handleCopyPrompt}
-                                            className="text-[10px] font-bold text-[#DFFF1A] uppercase tracking-widest px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
-                                        >
-                                            {language === 'ru' ? 'Копировать' : 'Copy'}
-                                        </button>
-                                    </div>
-                                    <p className="text-base text-white/90 leading-relaxed font-medium bg-white/5 p-5 rounded-2xl border border-white/5">
-                                        {image.prompt}
+                        <div className="flex-1 overflow-y-auto p-6 lg:p-8 space-y-8 scrollbar-hide">
+                            {/* Prompt Section */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <h3 className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] flex items-center gap-2">
+                                        <Sparkles className="w-3.5 h-3.5" />
+                                        {language === 'ru' ? 'Промпт' : 'Prompt'}
+                                    </h3>
+                                    <button
+                                        onClick={handleCopyPrompt}
+                                        className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
+                                        title={language === 'ru' ? 'Копировать промпт' : 'Copy prompt'}
+                                    >
+                                        <Copy className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                <div className="text-sm lg:text-base text-white/90 leading-relaxed font-medium">
+                                    {image.prompt}
+                                </div>
+                            </div>
+
+                            {/* Metadata Grid */}
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Model</span>
+                                    <p className="text-sm text-white/70 font-bold truncate">{image.model}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Quality</span>
+                                    <p className="text-sm text-white/70 font-bold uppercase">{resolution}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Size</span>
+                                    <p className="text-sm text-white/70 font-bold">
+                                        {currentAsset?.size ? `${Math.round(currentAsset.size / 1024)} KB` : 'N/A'}
                                     </p>
                                 </div>
-
-                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
-                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Model</span>
-                                        <p className="text-sm text-white/70 font-bold truncate">{image.model}</p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
-                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Quality</span>
-                                        <p className="text-sm text-white/70 font-bold uppercase">{resolution}</p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
-                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Size</span>
-                                        <p className="text-sm text-white/70 font-bold">
-                                            {currentAsset?.size ? `${Math.round(currentAsset.size / 1024)} KB` : 'N/A'}
-                                        </p>
-                                    </div>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
-                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Created</span>
-                                        <p className="text-sm text-white/70 font-bold">
-                                            {new Date(image.created_at).toLocaleDateString()}
-                                        </p>
-                                    </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Created</span>
+                                    <p className="text-sm text-white/70 font-bold">
+                                        {new Date(image.created_at).toLocaleDateString()}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Actions Bottom Bar - Fixed */}
-                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-2xl border-t border-white/10 z-50">
-                        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-4">
-                            <button
-                                onClick={handleRemix}
-                                className="flex-1 py-4 rounded-2xl bg-[#DFFF1A] hover:bg-[#EFFF4A] text-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(223,255,26,0.2)]"
-                            >
-                                <Sparkles className="w-4 h-4 fill-current" />
-                                {language === 'ru' ? 'Изменить' : 'Modify'}
-                            </button>
-
-                            <div className="flex items-center gap-3">
+                        {/* Actions Bottom Section (Panel-specific) */}
+                        <div className="p-4 lg:p-6 bg-black/40 backdrop-blur-xl border-t border-white/5 space-y-3">
+                            <div className="grid grid-cols-3 gap-2">
                                 <button
-                                    onClick={handleDownload}
-                                    className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10"
-                                    title="Download"
+                                    onClick={handleAnimate}
+                                    className="flex flex-col items-center justify-center gap-1 h-16 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-[9px] font-bold uppercase tracking-wider"
                                 >
-                                    <Download className="w-5 h-5" />
+                                    <Play className="w-3.5 h-3.5" />
+                                    {language === 'ru' ? 'Анимировать' : 'Animate'}
                                 </button>
                                 <button
-                                    className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10"
-                                    title="Share"
+                                    onClick={handleUpscale}
+                                    className="flex flex-col items-center justify-center gap-1 h-16 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/5 transition-all text-[9px] font-bold uppercase tracking-wider"
                                 >
-                                    <Share2 className="w-5 h-5" />
+                                    <Wand2 className="w-3.5 h-3.5" />
+                                    {language === 'ru' ? 'Улучшить' : 'Upscale'}
+                                </button>
+                                <button
+                                    onClick={handleMakeVariations}
+                                    className="flex flex-col items-center justify-center gap-1 h-16 rounded-2xl bg-[#6F00FF] hover:bg-[#7F20FF] text-white transition-all text-[9px] font-black uppercase tracking-wider shadow-[0_0_20px_rgba(111,0,255,0.15)]"
+                                >
+                                    <Sparkles className="w-3.5 h-3.5" />
+                                    {language === 'ru' ? 'Вариации' : 'Variations'}
+                                </button>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={handleDownload}
+                                    className="flex-1 h-11 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center gap-2 transition-all border border-white/10 font-bold text-[10px] uppercase tracking-widest"
+                                    title="Download"
+                                >
+                                    <Download className="w-3.5 h-3.5" />
+                                    {language === 'ru' ? 'Скачать' : 'Save'}
                                 </button>
                                 <button
                                     onClick={() => onToggleLike(image.id)}
-                                    className={`w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${image.is_favorite ? 'text-red-500' : 'text-white'}`}
-                                    title="Favorite"
+                                    className={`w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${image.is_favorite ? 'text-red-500' : 'text-white'}`}
                                 >
-                                    <Heart className={`w-5 h-5 ${image.is_favorite ? 'fill-current' : ''}`} />
+                                    <Heart className={`w-4 h-4 ${image.is_favorite ? 'fill-current' : ''}`} />
                                 </button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <button className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10">
-                                            <MoreHorizontal className="w-5 h-5" />
+                                        <button className="w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10">
+                                            <MoreHorizontal className="w-4 h-4" />
                                         </button>
                                     </DropdownMenuTrigger>
                                     <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
-                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10" onClick={handleAnimate}>
-                                            <Play className="w-4 h-4" /> {language === 'ru' ? 'Анимировать' : 'Animate'}
+                                        <DropdownMenuItem className="gap-3 py-3 rounded-lg cursor-pointer focus:bg-white/10">
+                                            <Share2 className="w-4 h-4" /> {language === 'ru' ? 'Поделиться' : 'Share'}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10" onClick={handleUpscale}>
-                                            <Wand2 className="w-4 h-4" /> {language === 'ru' ? 'Улучшить' : 'Upscale'}
-                                        </DropdownMenuItem>
-                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
+                                        <DropdownMenuItem 
+                                            onClick={() => setIsAddToCollectionOpen(true)}
+                                            className="gap-3 py-3 rounded-lg cursor-pointer focus:bg-white/10"
+                                        >
                                             <FolderPlus className="w-4 h-4" /> {language === 'ru' ? 'В папку' : 'Add to folder'}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10">
+                                        <DropdownMenuItem className="gap-3 py-3 rounded-lg text-red-500 focus:text-red-500 focus:bg-red-500/10">
                                             <Trash2 className="w-4 h-4" /> {language === 'ru' ? 'Удалить' : 'Delete'}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
@@ -293,6 +333,12 @@ export function ImageDetailDialog({
                         </div>
                     </div>
                 </div>
+
+                <AddToCollectionModal
+                    generationId={image.id}
+                    open={isAddToCollectionOpen}
+                    onOpenChange={setIsAddToCollectionOpen}
+                />
             </DialogContent>
         </Dialog>
     );

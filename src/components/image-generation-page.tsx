@@ -73,8 +73,34 @@ export function ImageGenerationPage() {
     // Handle URL params
     useEffect(() => {
         const promptParam = searchParams.get('prompt');
-        if (promptParam && imageModels.length > 0) {
-            setPrompt(decodeURIComponent(promptParam));
+        const modelParam = searchParams.get('model');
+        const actionParam = searchParams.get('action');
+
+        if (imageModels.length > 0) {
+            let currentPrompt = prompt;
+            let currentModel = model;
+
+            if (promptParam) {
+                currentPrompt = decodeURIComponent(promptParam);
+                setPrompt(currentPrompt);
+            }
+            if (modelParam) {
+                const foundModel = imageModels.find((m) => m.id === modelParam || m.name === modelParam);
+                if (foundModel) {
+                    currentModel = foundModel.id;
+                    setModel(currentModel);
+                }
+            }
+
+            if (actionParam === 'generate' && currentPrompt && currentModel && !isGenerating) {
+                // Small delay to ensure state is updated
+                setTimeout(() => {
+                    handleGenerate();
+                    // Clear the action param from URL to avoid re-triggering on refresh
+                    const newUrl = window.location.pathname + (currentPrompt ? `?prompt=${encodeURIComponent(currentPrompt)}` : '');
+                    window.history.replaceState({}, '', newUrl);
+                }, 500);
+            }
         }
     }, [searchParams, imageModels]);
 
@@ -128,6 +154,32 @@ export function ImageGenerationPage() {
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     };
 
+    const handleMakeVariations = async (gen: Generation) => {
+        setPrompt(gen.prompt);
+        const foundModel = imageModels.find((m) => m.id === gen.model || m.name === gen.model);
+        if (foundModel) setModel(foundModel.id);
+        
+        setIsGenerating(true);
+        try {
+            const generationId = await generateImageGeneric(foundModel?.id || gen.model, {
+                prompt: gen.prompt,
+                aspect_ratio: gen.aspect_ratio || aspectRatio,
+                resolution: resolution,
+            });
+
+            if (generationId) {
+                toast.success(language === 'ru' ? 'Генерация запущена' : 'Generation started');
+            } else {
+                toast.error(language === 'ru' ? 'Ошибка генерации' : 'Generation failed');
+            }
+        } catch (error) {
+            console.error('Variation error:', error);
+            toast.error(language === 'ru' ? 'Ошибка генерации' : 'Generation failed');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
     const handleGenerate = async () => {
         if (!prompt.trim() || !selectedModel) return;
 
@@ -176,7 +228,7 @@ export function ImageGenerationPage() {
                     <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-white/5 border border-white/10">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-sm sm:text-lg md:text-xl font-black uppercase tracking-[0.2em] text-white/90">
+                    <h1 className="text-3xl font-black uppercase tracking-tight">
                         {language === 'ru' ? 'ИЗОБРАЖЕНИЕ' : 'IMAGE'}
                     </h1>
                 </div>
@@ -240,6 +292,7 @@ export function ImageGenerationPage() {
                 onOpenChange={(open) => !open && setSelectedImage(null)}
                 resolution={resolution}
                 onRemix={handleRemix}
+                onMakeVariations={handleMakeVariations}
                 onToggleLike={toggleFavorite}
                 generations={imageGenerations}
                 onSelectImage={setSelectedImage}

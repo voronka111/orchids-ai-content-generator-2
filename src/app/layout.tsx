@@ -30,9 +30,9 @@ export default function RootLayout({
                     strategy="afterInteractive"
                     data-orchids-project-id="fd1da8b4-e5dc-4358-b600-21c518300dc8"
                 />
-                <StoreProvider>
-                    <LanguageProvider>{children}</LanguageProvider>
-                </StoreProvider>
+                <LanguageProvider>
+                    <StoreProvider>{children}</StoreProvider>
+                </LanguageProvider>
                 <Toaster position="bottom-right" richColors />
                 <VisualEditsMessenger />
             </body>

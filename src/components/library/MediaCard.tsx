@@ -58,7 +58,7 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
                             </div>
                         )}
                         {(generation.result_assets?.length || 0) > 1 && (
-                            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-lg bg-black/40 backdrop-blur-md border border-white/10 opacity-100 sm:group-hover:opacity-0 transition-opacity">
+                            <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-1 rounded-lg text-white/90 opacity-100 sm:group-hover:opacity-0 transition-opacity">
                                 <div className="grid grid-cols-2 gap-0.5">
                                     <div className="w-1 h-1 rounded-sm bg-white/60" />
                                     <div className="w-1 h-1 rounded-sm bg-white/60" />
@@ -85,10 +85,8 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
                                 e.currentTarget.currentTime = 0;
                             }}
                         />
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                            <div className="w-12 h-12 rounded-full bg-black/50 backdrop-blur-md flex items-center justify-center">
-                                <Play className="w-5 h-5 fill-white ml-0.5" />
-                            </div>
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none group-hover:scale-110 transition-transform">
+                            <Play className="w-12 h-12 fill-white/50 group-hover:fill-white transition-colors ml-1" />
                         </div>
                     </div>
                 ) : (
@@ -98,7 +96,17 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
                 );
 
             case 'audio':
-                const covers = (generation as any).result_assets?.map((a: any) => a.cover).filter(Boolean) || [];
+                const assets = generation.result_assets || [];
+                const covers: string[] = [];
+                for (let i = 0; i < assets.length; i++) {
+                    const asset = assets[i];
+                    if (asset.mime?.startsWith('audio/') || asset.url?.endsWith('.mp3')) {
+                        const next = assets[i + 1];
+                        if (next?.mime?.startsWith('image/')) {
+                            covers.push(next.url);
+                        }
+                    }
+                }
                 return (
                     <div className="w-full h-full bg-[#111] flex overflow-hidden">
                         {covers.length >= 2 ? (
@@ -117,9 +125,9 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
                                 <Music className="w-12 h-12 text-white/40" />
                             </div>
                         )}
-                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="w-12 h-12 rounded-full bg-[#6F00FF] flex items-center justify-center shadow-lg shadow-[#6F00FF]/20">
-                                <Play className="w-5 h-5 fill-white ml-0.5" />
+                        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="group-hover:scale-110 transition-transform">
+                                <Play className="w-12 h-12 fill-white/50 group-hover:fill-white transition-colors ml-1" />
                             </div>
                         </div>
                     </div>
@@ -149,17 +157,19 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
             >
                 {renderMediaPreview()}
                 
-                <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 to-transparent">
-                    <p className="text-xs font-bold truncate text-white mb-1">
-                        {generation.prompt}
-                    </p>
-                    <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
-                        {new Date(generation.created_at).toLocaleDateString(
-                            language === 'ru' ? 'ru-RU' : 'en-US',
-                            { day: 'numeric', month: 'short' }
-                        )}
-                    </span>
-                </div>
+                {!isProcessing && generation.status === 'success' && (
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                        <p className="text-sm font-mono line-clamp-2 text-white/90 leading-relaxed mb-1">
+                            {generation.prompt}
+                        </p>
+                        <span className="text-[9px] font-bold text-white/40 uppercase tracking-widest">
+                            {new Date(generation.created_at).toLocaleDateString(
+                                language === 'ru' ? 'ru-RU' : 'en-US',
+                                { day: 'numeric', month: 'short' }
+                            )}
+                        </span>
+                    </div>
+                )}
 
                 <div
                     onClick={(e) => {
@@ -191,6 +201,14 @@ export function MediaCard({ generation, isSelected, onToggleSelect, onClick }: M
             onClick={onClick}
         >
             {renderMediaPreview()}
+
+            {!isProcessing && generation.status === 'success' && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 sm:group-hover:opacity-100 transition-opacity flex flex-col justify-end p-6">
+                    <p className="text-sm font-mono line-clamp-2 text-white/90 leading-relaxed">
+                        {generation.prompt}
+                    </p>
+                </div>
+            )}
 
             <div
                 onClick={(e) => {

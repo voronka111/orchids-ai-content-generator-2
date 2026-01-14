@@ -47,105 +47,127 @@ export function ToolPage({ title, description, icon, gradient }: ToolPageProps) 
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex items-center gap-4 mb-8">
-        <Link href="/app" className="p-2 rounded-full hover:bg-white/10 transition-colors">
+    <div className="max-w-2xl mx-auto px-4 pt-12">
+      <div className="flex items-center gap-4 mb-12">
+        <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl ${gradient} flex items-center justify-center`}>
-            {icon}
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold">{title}</h1>
-            <p className="text-sm text-muted-foreground">{description}</p>
-          </div>
+        <div>
+          <h1 className="text-3xl font-black uppercase tracking-tight">{title}</h1>
+          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">{description}</p>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      {!uploadedImage ? (
         <div
-          className={`rounded-2xl glass p-6 transition-all ${isDragging ? "border-[#6F00FF] border-2" : ""}`}
           onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={handleDrop}
+          onClick={() => fileInputRef.current?.click()}
+          className={`aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
+            isDragging 
+              ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
+              : "border-white/10 hover:border-white/20 bg-white/5"
+          }`}
         >
-          <h3 className="font-medium mb-4">{language === "ru" ? "Исходное изображение" : "Source Image"}</h3>
+          <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
           
-          {uploadedImage ? (
+          <div className="relative z-10 flex flex-col items-center text-center px-6">
+            <div className={`w-32 h-32 rounded-3xl ${gradient} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-white/10 shadow-2xl`}>
+              {icon}
+            </div>
+            <h3 className="text-xl font-black uppercase tracking-tight mb-2">
+              {language === "ru" ? "Выберите изображение" : "Select an image"}
+            </h3>
+            <p className="text-sm text-white/40 font-medium">
+              {language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="grid md:grid-cols-2 gap-6">
+          <div
+            className={`rounded-3xl bg-white/5 border border-white/10 p-6 transition-all ${isDragging ? "border-[#6F00FF] border-2 border-dashed" : ""}`}
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+          >
+            <h3 className="font-bold text-xs uppercase tracking-widest text-white/30 mb-6">{language === "ru" ? "Исходное изображение" : "Source Image"}</h3>
+            
             <div className="relative">
-              <img src={uploadedImage} alt="Uploaded" className="w-full rounded-2xl" />
+              <img src={uploadedImage} alt="Uploaded" className="w-full rounded-2xl border border-white/5" />
               <button
                 onClick={() => { setUploadedImage(null); setResult(null); }}
-                className="absolute top-2 right-2 p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors"
+                className="absolute top-3 right-3 p-2.5 rounded-xl bg-black/60 hover:bg-black/80 transition-colors backdrop-blur-md border border-white/10"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
-          ) : (
-            <div
-              onClick={() => fileInputRef.current?.click()}
-              className="aspect-square border border-dashed border-white/20 rounded-2xl flex flex-col items-center justify-center cursor-pointer hover:border-[#6F00FF]/50 transition-colors"
-            >
-              <Plus className="w-12 h-12 text-muted-foreground mb-4" />
-              <p className="text-sm text-muted-foreground text-center px-4">
-                {t("drag.hint")} <span className="text-[#6F00FF]">{t("drag.click")}</span>
-              </p>
-            </div>
-          )}
 
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
-
-          {uploadedImage && (
             <button
               onClick={handleProcess}
               disabled={isProcessing}
-              className="btn-create w-full mt-4 px-6 py-3 rounded-xl font-medium flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full mt-8 py-5 rounded-xl bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(111,0,255,0.3)] disabled:opacity-50"
             >
               {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
               {language === "ru" ? "Обработать" : "Process"}
-              <span className="text-credits font-mono ml-2 flex items-center gap-1">
+              <div className="ml-2 flex items-center gap-1.5 text-[#FFD700] font-mono">
                 <Zap className="w-3.5 h-3.5 fill-current" />
-                10
-              </span>
-            </button>
-          )}
-        </div>
-
-        <div className="rounded-2xl glass p-6">
-          <h3 className="font-medium mb-4">{language === "ru" ? "Результат" : "Result"}</h3>
-          
-          {isProcessing ? (
-            <div className="aspect-square flex items-center justify-center">
-              <div className="text-center">
-                <Loader2 className="w-12 h-12 animate-spin text-[#6F00FF] mx-auto mb-4" />
-                <p className="text-muted-foreground">{language === "ru" ? "Обработка..." : "Processing..."}</p>
+                <span className="text-xs font-bold">10</span>
               </div>
-            </div>
-          ) : result ? (
-            <div className="relative">
-              <img src={result} alt="Result" className="w-full rounded-2xl" />
-              <div className="absolute bottom-4 right-4 flex gap-2">
-                <button className="p-2 rounded-full bg-black/60 hover:bg-black/80 transition-colors">
-                  <Download className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="rounded-3xl bg-white/5 border border-white/10 p-6">
+            <h3 className="font-bold text-xs uppercase tracking-widest text-white/30 mb-6">{language === "ru" ? "Результат" : "Result"}</h3>
+            
+            {isProcessing ? (
+              <div className="aspect-square flex items-center justify-center">
+                <div className="text-center">
+                  <div className="relative">
+                    <Loader2 className="w-16 h-16 animate-spin text-[#6F00FF] mx-auto mb-4" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Sparkles className="w-6 h-6 text-white" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-[#6F00FF] animate-pulse">
+                    {language === "ru" ? "Обработка..." : "Processing..."}
+                  </p>
+                </div>
+              </div>
+            ) : result ? (
+              <div className="relative">
+                <img src={result} alt="Result" className="w-full rounded-2xl border border-white/5" />
+                <button 
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = result;
+                    link.download = 'result.png';
+                    link.click();
+                  }}
+                  className="absolute bottom-4 right-4 p-3 rounded-xl bg-[#6F00FF] text-white hover:scale-110 active:scale-95 transition-all shadow-2xl"
+                >
+                  <Download className="w-5 h-5" />
                 </button>
               </div>
-            </div>
-          ) : (
-            <div className="aspect-square border border-dashed border-white/10 rounded-2xl flex items-center justify-center">
-              <p className="text-sm text-muted-foreground">
-                {language === "ru" ? "Результат появится здесь" : "Result will appear here"}
-              </p>
-            </div>
-          )}
+            ) : (
+              <div className="aspect-square border-2 border-dashed border-white/5 rounded-2xl flex items-center justify-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/20">
+                  {language === "ru" ? "Результат появится здесь" : "Result will appear here"}
+                </p>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFiles(e.target.files)}
+      />
     </div>
   );
 }

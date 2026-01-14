@@ -115,12 +115,12 @@ function HeaderDropdown({
                         <DropdownMenuItem
                             key={item.href}
                             asChild
-                            className="rounded-xl focus:bg-white/10 focus:text-white cursor-pointer p-0"
+                            className="rounded-xl focus:bg-white/10 focus:text-white data-[highlighted]:bg-white/10 data-[highlighted]:text-white cursor-pointer p-0"
                         >
-                            <Link
-                                href={item.href}
-                                className="flex items-start gap-3 w-full p-3 group/item"
-                            >
+                                <Link
+                                    href={item.href}
+                                    className="flex items-start gap-3 w-full pl-3 pr-8 py-3 group/item"
+                                >
                                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover/item:bg-white/10 transition-colors shrink-0">
                                     <item.icon className="w-5 h-5 text-white/40 group-hover/item:text-white transition-transform group-hover/item:scale-110" />
                                 </div>
@@ -292,10 +292,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <h3 className="px-4 text-[11px] font-bold text-muted-foreground uppercase tracking-widest mb-3">
-                                                    {t('nav.library')}
-                                                </h3>
+                                            <div className="pt-2 border-t border-white/5">
                                                 <div className="space-y-1">
                                                     <Link
                                                         href="/app/library"
@@ -315,7 +312,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
                                         <div className="p-4 border-t border-white/10 space-y-4">
                                             <div className="bg-white/5 rounded-2xl p-4">
-                                                <div className="flex items-center justify-between mb-2">
+                                                <div className="flex items-center justify-between mb-3">
                                                     <span className="text-xs text-muted-foreground">
                                                         {t('nav.credits')}
                                                     </span>
@@ -325,9 +322,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                                 </div>
                                                 <Progress
                                                     value={creditPercentage}
-                                                    className="h-1.5 bg-white/10"
+                                                    className="h-1.5 bg-white/10 mb-4"
                                                     // indicatorClassName="bg-gradient-to-r from-[#6F00FF] to-[#a855f7]"
                                                 />
+                                                <Link
+                                                    href="/app/profile#plans"
+                                                    onClick={() => setMenuOpen(false)}
+                                                    className="flex items-center justify-center w-full px-3 py-2 rounded-xl bg-[#FFDC74] hover:bg-[#FFDC74]/90 transition-colors text-xs font-bold text-black uppercase tracking-wider"
+                                                >
+                                                    {t('nav.more')}
+                                                </Link>
                                             </div>
                                         </div>
                                     </div>
@@ -350,28 +354,34 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 items={editItems}
                                 pathname={pathname}
                             />
+                            <Link
+                                href="/app/library"
+                                className={`px-4 py-2 rounded-xl transition-colors text-sm font-medium ${
+                                    pathname === '/app/library'
+                                        ? 'bg-white/10 text-white'
+                                        : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                {t('nav.library')}
+                            </Link>
                         </nav>
                     </div>
 
                     <div className="flex items-center gap-3 sm:gap-6">
-                        <Link
-                            href="/app/library"
-                            className={`hidden md:flex px-4 py-2 rounded-xl transition-colors text-sm font-medium ${
-                                pathname === '/app/library'
-                                    ? 'bg-white/10 text-white'
-                                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                            }`}
-                        >
-                            {t('nav.library')}
-                        </Link>
-
                         <div className="flex items-center gap-3">
-                            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                            <div className="hidden sm:flex items-center gap-1.5 px-1">
                                 <Zap className="w-4 h-4 text-[#FFDC74] fill-[#FFDC74]" />
                                 <span className="text-sm font-bold text-[#FFDC74] font-mono">
                                     {creditBalance}
                                 </span>
                             </div>
+
+                            <Link
+                                href="/app/profile#plans"
+                                className="hidden sm:flex px-3 py-1.5 rounded-lg bg-[#FFDC74] hover:bg-[#FFDC74]/90 transition-colors text-[11px] font-bold text-black uppercase tracking-wider"
+                            >
+                                {t('nav.more')}
+                            </Link>
 
                             <Link href="/app/profile">
                                 <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors overflow-hidden">

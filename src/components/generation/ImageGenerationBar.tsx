@@ -99,7 +99,7 @@ export function ImageGenerationBar({
                         <div className="flex items-center gap-2 flex-wrap">
                             <button
                                 onClick={onOpenFilePicker}
-                                className="flex items-center justify-center text-white/40 hover:text-white transition-colors w-[40px] h-[36px] rounded-xl bg-white/5 border border-white/10"
+                                className="flex items-center justify-center text-white/40 hover:text-white transition-colors w-10 h-10 rounded-full bg-white/5 border border-white/10"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                             </button>

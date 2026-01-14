@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useAuthStore } from '@/stores/auth-store';
 import { useModelsStore } from '@/stores/models-store';
+import { useLanguage } from '@/lib/language-context';
 
 interface TelegramWebApp {
     initData: string;
@@ -73,6 +74,7 @@ interface StoreProviderProps {
 
 export function StoreProvider({ children }: StoreProviderProps) {
     const [isReady, setIsReady] = useState(false);
+    const { language } = useLanguage();
     const initialize = useAuthStore((state) => state.initialize);
     const fetchModels = useModelsStore((state) => state.fetchModels);
 
@@ -108,7 +110,9 @@ export function StoreProvider({ children }: StoreProviderProps) {
             <div className="flex min-h-screen items-center justify-center bg-background">
                 <div className="flex flex-col items-center gap-4">
                     <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                    <p className="text-sm text-muted-foreground">Loading...</p>
+                    <p className="text-sm text-muted-foreground">
+                        {language === 'ru' ? 'Делаем...' : 'Loading...'}
+                    </p>
                 </div>
             </div>
         );

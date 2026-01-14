@@ -58,7 +58,7 @@ export function AudioTrackCard({
                     )}
                 </div>
                 <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-bold truncate mb-1">
+                    <h3 className="text-sm font-mono truncate mb-1">
                         {isProcessing
                             ? language === 'ru'
                                 ? 'Генерация...'
@@ -146,21 +146,21 @@ export function AudioTrackCard({
             <div className="absolute right-6 top-1/2 -translate-y-1/2" onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                            <MoreHorizontal className="w-5 h-5 text-white/20" />
+                        <button className="p-2 rounded-xl text-white/30 hover:text-white hover:bg-white/10 transition-all active:scale-95">
+                            <MoreHorizontal className="w-5 h-5" />
                         </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                         align="end"
-                        className="bg-[#111] border-white/5 rounded-xl font-mono"
+                        className="bg-[#111] border-white/5 rounded-2xl p-2 font-mono"
                     >
-                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
+                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 rounded-lg cursor-pointer">
                             {language === 'ru' ? 'Переименовать' : 'Rename'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5">
+                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 rounded-lg cursor-pointer">
                             {language === 'ru' ? 'Продолжить' : 'Extend'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 text-red-500">
+                        <DropdownMenuItem className="text-[10px] font-bold uppercase tracking-widest p-2.5 text-red-500 rounded-lg cursor-pointer focus:bg-red-500/10 focus:text-red-500">
                             {language === 'ru' ? 'Удалить' : 'Delete'}
                         </DropdownMenuItem>
                     </DropdownMenuContent>

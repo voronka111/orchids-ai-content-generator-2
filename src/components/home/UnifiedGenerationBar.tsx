@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Image as ImageIcon, Video as VideoIcon, Plus, Loader2, Zap, ChevronDown, X, Settings2, Maximize, Clock, Sparkles, Music } from 'lucide-react';
+import { Image as ImageIcon, Video as VideoIcon, Music, Plus, Loader2, Zap, ChevronDown, X, Settings2, Maximize, Clock, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLanguage } from '@/lib/language-context';
 import { useModelsStore } from '@/stores/models-store';
@@ -83,7 +83,7 @@ export function UnifiedGenerationBar() {
         
         if (mode === 'image') {
             url += `&aspect_ratio=${aspectRatio}&quality=${quality}`;
-        } else {
+        } else if (mode === 'video') {
             url += `&duration=${duration}&quality=${videoQuality}`;
         }
 
@@ -110,21 +110,21 @@ export function UnifiedGenerationBar() {
             <div className="flex items-center justify-center gap-2">
                 <Link 
                     href="/app/create/image"
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/5 text-white/40 border-white/5 hover:text-white`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
                     <ImageIcon className="w-3.5 h-3.5" />
                     {language === 'ru' ? 'Изображение' : 'Image'}
                 </Link>
                 <Link 
                     href="/app/create/video"
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/5 text-white/40 border-white/5 hover:text-white`}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
                     <VideoIcon className="w-3.5 h-3.5" />
                     {language === 'ru' ? 'Видео' : 'Video'}
                 </Link>
                 <Link 
                     href="/app/create/audio"
-                    className="flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest bg-white/5 text-white/40 border border-white/5 hover:text-white transition-all"
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border bg-white/10 backdrop-blur-md text-white/40 border-white/5 hover:text-white`}
                 >
                     <Music className="w-3.5 h-3.5" />
                     {language === 'ru' ? 'Аудио' : 'Audio'}
@@ -179,13 +179,13 @@ export function UnifiedGenerationBar() {
                         <div className="flex items-center gap-2">
                             <button
                                 onClick={() => fileInputRef.current?.click()}
-                                className="flex items-center justify-center text-white/40 hover:text-white transition-colors w-[40px] h-[36px] rounded-xl bg-white/5 border border-white/10"
+                                className="flex items-center justify-center text-white/40 hover:text-white transition-colors w-10 h-10 rounded-full bg-white/5 border border-white/10"
                             >
                                 <Plus className="w-3.5 h-3.5" />
                             </button>
                             <button
                                 onClick={() => setMode(mode === 'image' ? 'video' : 'image')}
-                                className="w-[40px] h-[36px] flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/10"
+                                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white transition-all border border-white/10"
                                 title={mode === 'image' ? 'Switch to Video' : 'Switch to Image'}
                             >
                                 {mode === 'image' ? <ImageIcon className="w-4 h-4" /> : <VideoIcon className="w-4 h-4" />}

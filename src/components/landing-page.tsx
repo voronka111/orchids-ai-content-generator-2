@@ -740,12 +740,12 @@ function NavDropdown({
                         <DropdownMenuItem
                             key={item.href}
                             asChild
-                            className="rounded-xl focus:bg-white/10 focus:text-white cursor-pointer p-0"
+                            className="rounded-lg focus:bg-white/10 focus:text-white cursor-pointer p-0"
                         >
-                            <Link
-                                href={item.href}
-                                className="flex items-center gap-3 w-full p-3 group/item"
-                            >
+                                <Link
+                                    href={item.href}
+                                    className="flex items-center gap-3 w-full pl-3 pr-8 py-3 group/item"
+                                >
                                 <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center group-hover/item:bg-white/10 group-hover/item:text-white transition-colors">
                                     <item.icon className="w-4 h-4 transition-transform group-hover/item:scale-110" />
                                 </div>

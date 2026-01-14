@@ -175,7 +175,7 @@ export function VideoGenerationPage() {
                     <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-white/5 border border-white/10">
                         <ArrowLeft className="w-5 h-5" />
                     </Link>
-                    <h1 className="text-sm sm:text-lg md:text-xl font-black uppercase tracking-[0.2em] text-white/90">
+                    <h1 className="text-3xl font-black uppercase tracking-tight">
                         {language === 'ru' ? 'ВИДЕО' : 'VIDEO'}
                     </h1>
                 </div>

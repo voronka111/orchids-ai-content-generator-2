@@ -310,20 +310,30 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                 return;
             }
 
-            if (data) {
+            if (data && typeof data === 'object' && 'data' in data && Array.isArray((data as any).data)) {
                 const historyData = data as {
                     data: Generation[];
                     pagination: { has_more: boolean };
                 };
 
-                set((state) => ({
-                    generations: reset
-                        ? historyData.data
-                        : [...state.generations, ...historyData.data],
-                    hasMore: historyData.pagination.has_more,
-                    offset: newOffset + historyData.data.length,
-                    isLoading: false,
-                }));
+                set((state) => {
+                    const newGenerations = reset ? historyData.data : [...state.generations, ...historyData.data];
+                    // Ensure uniqueness by ID
+                    const uniqueGenerations = Array.from(new Map(newGenerations.map(g => [g.id, g])).values());
+                    
+                    return {
+                        generations: uniqueGenerations,
+                        hasMore: historyData.pagination.has_more,
+                        offset: newOffset + historyData.data.length,
+                        isLoading: false,
+                    };
+                });
+            } else {
+                set({ 
+                    generations: reset ? [] : get().generations, 
+                    hasMore: false, 
+                    isLoading: false 
+                });
             }
         } catch (err) {
             set({

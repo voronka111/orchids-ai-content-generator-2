@@ -31,7 +31,7 @@ export function UploadedImagesPreview({
             {images.map((img, index) => (
                 <div
                     key={img.id}
-                    className="relative w-16 h-16 rounded-2xl overflow-hidden group border border-white/10 shadow-lg"
+                    className="relative w-16 h-16 rounded-xl overflow-hidden group border border-white/10 shadow-lg"
                 >
                     <img
                         src={img.url}

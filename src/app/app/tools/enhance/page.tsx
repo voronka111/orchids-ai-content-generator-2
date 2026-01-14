@@ -31,6 +31,8 @@ function EnhanceToolContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   
+  const EXAMPLE_IMAGE = "https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/010102a2-9a78-497c-a40c-16883620b037/upscale-1768346852348.png?width=8000&height=8000&resize=contain";
+  
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [result, setResult] = useState<string | null>(null);
@@ -75,46 +77,46 @@ function EnhanceToolContent() {
   };
 
   if (!uploadedImage) {
-    return (
-      <div className="max-w-4xl mx-auto px-4 pt-12">
-        <div className="flex items-center gap-4 mb-12">
-          <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-            <div>
-              <h1 className="text-3xl font-black uppercase tracking-tight">
-                {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
-              </h1>
-              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
-                {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
-              </p>
-            </div>
-        </div>
+      return (
+        <div className="max-w-2xl mx-auto px-4 pt-12">
+          <div className="flex items-center gap-4 mb-12">
+            <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+              <div>
+                <h1 className="text-3xl font-black uppercase tracking-tight">
+                  {language === "ru" ? "Улучшить качество" : "Enhance Quality"}
+                </h1>
+                <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
+                  {language === "ru" ? "Нейронный апскейл и восстановление деталей" : "Neural upscale and detail restoration"}
+                </p>
+              </div>
+          </div>
 
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`aspect-[16/9] md:aspect-[21/9] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
-            isDragging 
-              ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
-              : "border-white/10 hover:border-white/20 bg-white/5"
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          
-          <div className="relative z-10 flex flex-col items-center text-center px-6">
-            <div className="w-20 h-20 rounded-3xl bg-[#6F00FF]/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500">
-              <Plus className="w-10 h-10 text-[#6F00FF]" />
-            </div>
-            <h3 className="text-xl font-black uppercase tracking-tight mb-2">
-              {language === "ru" ? "Выберите изображение" : "Select an image"}
-            </h3>
-            <p className="text-sm text-white/40 font-medium">
-              {language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}
-            </p>
-            <div className="mt-8 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-30">
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
+              isDragging 
+                ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
+                : "border-white/10 hover:border-white/20 bg-white/5"
+            }`}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+                <div className="relative z-10 flex flex-col items-center text-center px-6">
+                  <div className="w-64 h-64 rounded-3xl overflow-hidden mb-8 group-hover:scale-105 transition-transform duration-500 border border-white/10 shadow-2xl relative">
+                    <img src={EXAMPLE_IMAGE} alt="Example" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                  <h3 className="text-xl font-black uppercase tracking-tight mb-2">
+                {language === "ru" ? "Выберите изображение" : "Select an image"}
+              </h3>
+              <p className="text-sm text-white/40 font-medium">
+                {language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}
+              </p>
+              <div className="mt-8 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-30">
               <span>JPG</span>
               <span className="w-1 h-1 rounded-full bg-white" />
               <span>PNG</span>
@@ -133,34 +135,6 @@ function EnhanceToolContent() {
           className="hidden"
           onChange={(e) => handleFiles(e.target.files)}
         />
-
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
-          {[
-            {
-              title: language === "ru" ? "Апскейл до 8K" : "Upscale to 8K",
-              desc: language === "ru" ? "Увеличивайте разрешение без потери качества" : "Increase resolution without quality loss",
-              icon: <Maximize2 className="w-5 h-5 text-[#6F00FF]" />
-            },
-            {
-              title: language === "ru" ? "Детализация" : "Detailing",
-              desc: language === "ru" ? "Восстановление текстур и четкости лиц" : "Restoring textures and facial clarity",
-              icon: <Wand2 className="w-5 h-5 text-[#6F00FF]" />
-            },
-            {
-              title: language === "ru" ? "Шумоподавление" : "Denoising",
-              desc: language === "ru" ? "Удаление артефактов и цифрового шума" : "Removing artifacts and digital noise",
-              icon: <Zap className="w-5 h-5 text-[#6F00FF]" />
-            }
-          ].map((feature, i) => (
-            <div key={i} className="p-6 rounded-[32px] bg-white/5 border border-white/5">
-              <div className="w-12 h-12 rounded-2xl bg-[#6F00FF]/10 flex items-center justify-center mb-4">
-                {feature.icon}
-              </div>
-              <h4 className="font-black uppercase tracking-tight text-sm mb-2">{feature.title}</h4>
-              <p className="text-xs text-white/40 leading-relaxed font-medium">{feature.desc}</p>
-            </div>
-          ))}
-        </div>
       </div>
     );
   }

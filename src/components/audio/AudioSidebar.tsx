@@ -262,7 +262,7 @@ export function AudioSidebar({
                                             value={weirdness}
                                             onValueChange={onWeirdnessChange}
                                             max={100}
-                                            step={1}
+                                            step={0.1}
                                             className="py-2"
                                         />
                                     </div>

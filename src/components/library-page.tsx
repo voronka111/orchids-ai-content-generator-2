@@ -1,46 +1,233 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { Folder, Maximize2, Minimize2 } from 'lucide-react';
+import { Folder, Maximize2, Minimize2, ChevronLeft, MoreHorizontal, Pencil, Trash2, Filter, Plus } from 'lucide-react';
 import { useLanguage } from '@/lib/language-context';
 import { useGenerationStore, Generation } from '@/stores/generation-store';
+import { useCollectionsStore, Collection } from '@/stores/collections-store';
 import { Slider } from '@/components/ui/slider';
+import { toast } from 'sonner';
 import {
     LibrarySidebar,
     MediaCard,
     SelectionActionBar,
     UpgradeModal,
+    FolderCard,
+    FolderModal,
     type CategoryType,
-    type FolderType,
 } from '@/components/library';
 import { ImageDetailDialog } from '@/components/dialogs/ImageDetailDialog';
 import { VideoDetailDialog } from '@/components/dialogs/VideoDetailDialog';
 import { useModelsStore } from '@/stores/models-store';
 import { AudioTrackCard, AudioPlayerFooter } from '@/components/audio';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export function LibraryPage() {
     const { language } = useLanguage();
+    const router = useRouter();
 
     // Store
-    const { generations, toggleFavorite } = useGenerationStore();
+    const { generations, toggleFavorite, fetchHistory } = useGenerationStore();
     const { videoModels } = useModelsStore();
+    const { 
+        collections, 
+        isLoading: isCollectionsLoading,
+        fetchCollections, 
+        createCollection, 
+        renameCollection, 
+        deleteCollection,
+        setCollections,
+        fetchCollectionDetails 
+    } = useCollectionsStore();
 
     // Local state
     const [activeCategory, setActiveCategory] = useState<CategoryType>('all');
+    const [activeFolderId, setActiveFolderId] = useState<string | null>(null);
+    const [activeFolder, setActiveFolder] = useState<Collection | null>(null);
+    const [isFolderLoading, setIsFolderLoading] = useState(false);
+    const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'image' | 'video' | 'audio'>('all');
+    
     const [gridSize, setGridSize] = useState([300]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [selectedGeneration, setSelectedGeneration] = useState<Generation | null>(null);
-    const [folders, setFolders] = useState<FolderType[]>([
-        { id: '1', name: language === 'ru' ? 'Проект А' : 'Project A', count: 12 },
-        { id: '2', name: language === 'ru' ? 'Для соцсетей' : 'For Socials', count: 5 },
-    ]);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+    // Folder Modal state
+    const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
+    const [folderModalMode, setFolderModalMode] = useState<'create' | 'rename'>('create');
+    const [folderToRename, setFolderToRename] = useState<{ id: string, name: string } | null>(null);
+
+    // Fetch initial data
+    useEffect(() => {
+        fetchCollections();
+        fetchHistory(true);
+    }, []);
+
+    // Fetch folder details when activeFolderId changes
+    useEffect(() => {
+        if (activeFolderId) {
+            setIsFolderLoading(true);
+            fetchCollectionDetails(activeFolderId).then((data) => {
+                setActiveFolder(data);
+                setIsFolderLoading(false);
+            });
+        } else {
+            setActiveFolder(null);
+            setIsFolderLoading(false);
+        }
+    }, [activeFolderId]);
+
+    // Helpers
+    const getCategoryLabel = () => {
+        if (activeFolder) return activeFolder.name;
+        if (activeCategory === 'favorites') return language === 'ru' ? 'Избранное' : 'Favorites';
+        if (activeCategory === 'image') return language === 'ru' ? 'Изображения' : 'Images';
+        if (activeCategory === 'video') return language === 'ru' ? 'Видео' : 'Videos';
+        if (activeCategory === 'audio') return language === 'ru' ? 'Аудио' : 'Audio';
+        return language === 'ru' ? 'Библиотека' : 'Library';
+    };
+
+    const handleOpenCreateFolder = () => {
+        setFolderModalMode('create');
+        setFolderToRename(null);
+        setIsFolderModalOpen(true);
+    };
+
+    const handleOpenRenameFolder = (id: string, name: string) => {
+        setFolderModalMode('rename');
+        setFolderToRename({ id, name });
+        setIsFolderModalOpen(true);
+    };
+
+    const handleFolderModalConfirm = async (name: string) => {
+        if (folderModalMode === 'create') {
+            const newFolder = await createCollection(name);
+            if (newFolder) {
+                setActiveFolderId(newFolder.id);
+                setActiveCategory('all');
+                toast.success(language === 'ru' ? 'Папка создана' : 'Folder created');
+            }
+        } else if (folderModalMode === 'rename' && folderToRename) {
+            const success = await renameCollection(folderToRename.id, name);
+            if (success) {
+                if (activeFolder && activeFolder.id === folderToRename.id) {
+                    setActiveFolder({ ...activeFolder, name });
+                }
+                toast.success(language === 'ru' ? 'Переименовано' : 'Renamed');
+            }
+        }
+    };
+
+    const handleDeleteFolder = async (id: string) => {
+        const success = await deleteCollection(id);
+        if (success) {
+            toast.success(language === 'ru' ? 'Папка удалена' : 'Folder deleted');
+            if (activeFolderId === id) {
+                setActiveFolderId(null);
+                setActiveCategory('all');
+            }
+        }
+    };
+
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => 
+            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+        );
+    };
+
+    // Derived state
+    const filteredGenerations = useMemo(() => {
+        if (!Array.isArray(generations)) return [];
+        
+        // If we are in a folder view
+        if (activeFolderId) {
+            // Only show items if activeFolder matches the requested ID
+            if (!activeFolder || activeFolder.id !== activeFolderId) return [];
+            
+            const base = activeFolder.items || [];
+            if (contentTypeFilter === 'all') return base;
+            return base.filter(g => g.type === contentTypeFilter);
+        }
+
+        // Global view
+        return generations.filter((g) => {
+            if (activeCategory === 'all') return true;
+            if (activeCategory === 'favorites') return g.is_favorite;
+            if (activeCategory === 'image') return g.type === 'image';
+            if (activeCategory === 'video') return g.type === 'video';
+            if (activeCategory === 'audio') return g.type === 'audio';
+            return false;
+        });
+    }, [generations, activeCategory, activeFolder, activeFolderId, contentTypeFilter]);
+
+    const folderStats = useMemo(() => {
+        if (!activeFolder || !activeFolder.items) return null;
+        return {
+            image: activeFolder.items.filter(i => i.type === 'image').length,
+            video: activeFolder.items.filter(i => i.type === 'video').length,
+            audio: activeFolder.items.filter(i => i.type === 'audio').length,
+        };
+    }, [activeFolder]);
+
+    const groupedGenerations = useMemo(() => {
+        const groups: Record<string, Generation[]> = {};
+        
+        filteredGenerations.forEach(gen => {
+            const date = new Date(gen.created_at);
+            const now = new Date();
+            const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 3600 * 24));
+            
+            let label = '';
+            if (diffDays === 0) label = language === 'ru' ? 'Сегодня' : 'Today';
+            else if (diffDays === 1) label = language === 'ru' ? 'Вчера' : 'Yesterday';
+            else label = language === 'ru' ? 'Ранее' : 'Older';
+            
+            if (!groups[label]) groups[label] = [];
+            groups[label].push(gen);
+        });
+        
+        return Object.entries(groups);
+    }, [filteredGenerations, language]);
+
+    const counts = useMemo(
+        () => {
+            if (!Array.isArray(generations)) return { all: 0, favorites: 0, image: 0, video: 0, audio: 0 };
+            return {
+                all: generations.length,
+                favorites: generations.filter((g) => g.is_favorite).length,
+                image: generations.filter((g) => g.type === 'image').length,
+                video: generations.filter((g) => g.type === 'video').length,
+                audio: generations.filter((g) => g.type === 'audio').length,
+            };
+        },
+        [generations]
+    );
+
+    const sidebarFolders = useMemo(() => {
+        if (!Array.isArray(collections)) return [];
+        return collections.map(c => ({
+            id: c.id,
+            name: c.name || (language === 'ru' ? 'Новая папка' : 'Untitled Folder'),
+            count: c.count || 0
+        }));
+    }, [collections, language]);
 
     // Audio player hook
     const audioGenerations = useMemo(
-        () => generations.filter((g) => g.type === 'audio'),
+        () => {
+            if (!Array.isArray(generations)) return [];
+            return generations.filter((g) => g.type === 'audio');
+        },
         [generations]
     );
 
@@ -66,99 +253,15 @@ export function LibraryPage() {
         formatDuration,
     } = useAudioPlayer(audioGenerations);
 
-    const filteredGenerations = useMemo(() => {
-        return generations.filter((g) => {
-            if (activeCategory === 'all') return true;
-            if (activeCategory === 'favorites') return g.is_favorite;
-            if (activeCategory === 'image') return g.type === 'image';
-            if (activeCategory === 'video') return g.type === 'video';
-            if (activeCategory === 'audio') return g.type === 'audio';
-            return false;
-        });
-    }, [generations, activeCategory]);
-
-    const counts = useMemo(
-        () => ({
-            all: generations.length,
-            favorites: generations.filter((g) => g.is_favorite).length,
-            image: generations.filter((g) => g.type === 'image').length,
-            video: generations.filter((g) => g.type === 'video').length,
-            audio: generations.filter((g) => g.type === 'audio').length,
-        }),
-        [generations]
-    );
-
-    const groupedGenerations = useMemo(() => {
-        const groups: { [key: string]: Generation[] } = {};
-        filteredGenerations.forEach((gen) => {
-            const date = new Date(gen.created_at);
-            const now = new Date();
-            const isToday = date.toDateString() === now.toDateString();
-            const yesterday = new Date(now);
-            yesterday.setDate(now.getDate() - 1);
-            const isYesterday = date.toDateString() === yesterday.toDateString();
-
-            let label = date.toLocaleDateString(language === 'ru' ? 'ru-RU' : 'en-US', {
-                month: 'long',
-                day: 'numeric',
-                year: 'numeric',
-            });
-            if (isToday) label = language === 'ru' ? 'Сегодня' : 'Today';
-            else if (isYesterday) label = language === 'ru' ? 'Вчера' : 'Yesterday';
-
-            if (!groups[label]) groups[label] = [];
-            groups[label].push(gen);
-        });
-        return Object.entries(groups).sort((a, b) => {
-            // Sort by actual date
-            const dateA = groupedGenerations_getDateFromLabel(a[0], language);
-            const dateB = groupedGenerations_getDateFromLabel(b[0], language);
-            return dateB.getTime() - dateA.getTime();
-        });
-    }, [filteredGenerations, language]);
-
-    // Helper to get date from label for sorting
-    function groupedGenerations_getDateFromLabel(label: string, lang: string) {
-        if (label === (lang === 'ru' ? 'Сегодня' : 'Today')) return new Date();
-        if (label === (lang === 'ru' ? 'Вчера' : 'Yesterday')) {
-            const d = new Date();
-            d.setDate(d.getDate() - 1);
-            return d;
-        }
-        return new Date(label);
-    }
-
-    const toggleSelect = (id: string) => {
-        setSelectedIds((prev) =>
-            prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
-        );
+    const handleRemix = (gen: Generation) => {
+        router.push(`/app/create/${gen.type}?prompt=${encodeURIComponent(gen.prompt)}&model=${encodeURIComponent(gen.model)}`);
     };
 
-    const handleAddFolder = () => {
-        if (folders.length >= 3) {
-            setIsUpgradeModalOpen(true);
-            return;
-        }
-        const name =
-            language === 'ru'
-                ? `Новая папка ${folders.length + 1}`
-                : `New Folder ${folders.length + 1}`;
-        setFolders([...folders, { id: Date.now().toString(), name, count: 0 }]);
+    const handleMakeVariations = (gen: Generation) => {
+        router.push(`/app/create/${gen.type}?prompt=${encodeURIComponent(gen.prompt)}&model=${encodeURIComponent(gen.model)}&action=generate`);
     };
 
-    const getCategoryLabel = () => {
-        const labels: Record<CategoryType, string> = {
-            all: language === 'ru' ? 'Библиотека' : 'Library',
-            favorites: language === 'ru' ? 'Избранное' : 'Favorites',
-            image: language === 'ru' ? 'Изображения' : 'Images',
-            video: language === 'ru' ? 'Видео' : 'Video',
-            audio: language === 'ru' ? 'Аудио' : 'Audio',
-            'face-swap': language === 'ru' ? 'Замена лица' : 'Face Swap',
-            stylist: language === 'ru' ? 'Стилист' : 'Stylist',
-            relight: language === 'ru' ? 'Освещение' : 'Relight',
-        };
-        return labels[activeCategory];
-    };
+    const showFoldersInMain = false;
 
     return (
         <div className="relative min-h-screen -mt-6 sm:-mx-6 px-4 sm:px-8 py-8 overflow-hidden">
@@ -172,39 +275,296 @@ export function LibraryPage() {
             />
 
             <div className="relative z-10 flex flex-col lg:flex-row gap-8">
-                <LibrarySidebar
-                    activeCategory={activeCategory}
-                    onCategoryChange={setActiveCategory}
-                    folders={folders}
-                    onAddFolder={handleAddFolder}
-                    counts={counts}
-                />
+                <div className="hidden lg:block">
+                    <LibrarySidebar
+                        activeCategory={activeFolderId ? 'all' : activeCategory}
+                        activeFolderId={activeFolderId}
+                        onCategoryChange={(cat) => {
+                            setActiveCategory(cat);
+                            setActiveFolderId(null);
+                        }}
+                        onFolderClick={(id) => {
+                            setActiveFolderId(id);
+                            setActiveCategory('all');
+                        }}
+                        folders={sidebarFolders}
+                        onAddFolder={handleOpenCreateFolder}
+                        onRenameFolder={handleOpenRenameFolder}
+                        onDeleteFolder={handleDeleteFolder}
+                        counts={counts}
+                    />
+                </div>
 
                 {/* Main Content */}
                 <main className="flex-1 space-y-8">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <h1 className="text-3xl font-black uppercase tracking-tight">
-                            {getCategoryLabel()}
-                        </h1>
+                    <div className="flex flex-col gap-6">
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <div className="flex items-center gap-4">
+                                {activeFolder && (
+                                    <button
+                                        onClick={() => {
+                                            setActiveFolderId(null);
+                                            setActiveCategory('all');
+                                        }}
+                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all"
+                                    >
+                                        <ChevronLeft className="w-5 h-5" />
+                                    </button>
+                                )}
+                                
+                                <div className="flex items-center gap-4">
+                                    <h1 className="text-3xl font-black uppercase tracking-tight">
+                                        {getCategoryLabel()}
+                                    </h1>
+                                    {activeFolder && (
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={() => handleOpenRenameFolder(activeFolder.id, activeFolder.name)}
+                                                className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white/60 transition-colors"
+                                            >
+                                                <Pencil className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteFolder(activeFolder.id)}
+                                                className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-colors"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
 
-                        <div className="flex items-center gap-6 bg-white/5 px-4 py-2 rounded-2xl border border-white/5">
-                            <div className="flex items-center gap-3 w-32 sm:w-48">
-                                <Minimize2 className="w-3.5 h-3.5 text-white/20" />
-                                <Slider
-                                    value={gridSize}
-                                    onValueChange={setGridSize}
-                                    max={600}
-                                    min={150}
-                                    step={1}
-                                    className="flex-1 cursor-pointer"
-                                />
-                                <Maximize2 className="w-3.5 h-3.5 text-white/20" />
+                            <div className="flex items-center gap-6 px-4 py-2 rounded-2xl">
+                                <div className="flex items-center gap-3 w-32 sm:w-48">
+                                    <Minimize2 className="w-3.5 h-3.5 text-white/20" />
+                                    <Slider
+                                        value={gridSize}
+                                        onValueChange={setGridSize}
+                                        max={600}
+                                        min={150}
+                                        step={0.1}
+                                        className="flex-1 cursor-pointer"
+                                    />
+                                    <Maximize2 className="w-3.5 h-3.5 text-white/20" />
+                                </div>
                             </div>
                         </div>
+
+                        {/* Mobile Navigation */}
+                        <div className="flex lg:hidden flex-col gap-3 pb-2">
+                            {/* Categories Row */}
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4">
+                                <button
+                                    onClick={() => { setActiveCategory('all'); setActiveFolderId(null); }}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeCategory === 'all' && !activeFolderId
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {language === 'ru' ? 'Все' : 'All'}
+                                </button>
+                                <button
+                                    onClick={() => { setActiveCategory('favorites'); setActiveFolderId(null); }}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeCategory === 'favorites' && !activeFolderId
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {language === 'ru' ? 'Избранное' : 'Favorites'}
+                                </button>
+                                <button
+                                    onClick={() => { setActiveCategory('image'); setActiveFolderId(null); }}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeCategory === 'image' && !activeFolderId
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {language === 'ru' ? 'Фото' : 'Photos'}
+                                </button>
+                                <button
+                                    onClick={() => { setActiveCategory('video'); setActiveFolderId(null); }}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeCategory === 'video' && !activeFolderId
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {language === 'ru' ? 'Видео' : 'Video'}
+                                </button>
+                                <button
+                                    onClick={() => { setActiveCategory('audio'); setActiveFolderId(null); }}
+                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                        activeCategory === 'audio' && !activeFolderId
+                                            ? 'bg-white text-black'
+                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
+                                    }`}
+                                >
+                                    {language === 'ru' ? 'Аудио' : 'Audio'}
+                                </button>
+                            </div>
+
+                            {/* Folders Row */}
+                            <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4 items-center">
+                                {sidebarFolders.map((folder) => (
+                                    <div key={folder.id} className="relative flex-shrink-0">
+                                        <button
+                                            onClick={() => { setActiveFolderId(folder.id); setActiveCategory('all'); }}
+                                            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                                activeFolderId === folder.id
+                                                    ? 'bg-white/10 text-white border border-white/10'
+                                                    : 'bg-transparent text-white/40 hover:text-white border border-transparent'
+                                            }`}
+                                        >
+                                            <Folder className="w-3 h-3" />
+                                            {folder.name || (language === 'ru' ? 'Новая папка' : 'Untitled Folder')}
+                                            {activeFolderId === folder.id && (
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                        <span className="p-0.5 rounded-md hover:bg-white/10 transition-colors">
+                                                            <MoreHorizontal className="w-3 h-3" />
+                                                        </span>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-40 bg-[#0A0A0A] border-white/10">
+                                                        <DropdownMenuItem onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleOpenRenameFolder(folder.id, folder.name);
+                                                        }}>
+                                                            <Pencil className="w-4 h-4 mr-2" />
+                                                            {language === 'ru' ? 'Переименовать' : 'Rename'}
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem 
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                handleDeleteFolder(folder.id);
+                                                            }}
+                                                            className="text-red-500 focus:text-red-500"
+                                                        >
+                                                            <Trash2 className="w-4 h-4 mr-2" />
+                                                            {language === 'ru' ? 'Удалить' : 'Delete'}
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            )}
+                                        </button>
+                                    </div>
+                                ))}
+                                
+                                <button
+                                    onClick={handleOpenCreateFolder}
+                                    className="whitespace-nowrap p-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                >
+                                    <Plus className="w-3.5 h-3.5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {activeFolder && folderStats && (
+                            <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/5 rounded-2xl w-fit border border-white/5">
+                                <button
+                                    onClick={() => setContentTypeFilter('all')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                        contentTypeFilter === 'all'
+                                            ? 'bg-white/10 text-white shadow-lg shadow-black/20'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <Filter className="w-4 h-4" />
+                                    {language === 'ru' ? 'Все' : 'All'}
+                                    <span className="text-[10px] font-bold opacity-40 ml-1">
+                                        {(activeFolder.items || []).length}
+                                    </span>
+                                </button>
+                                <div className="w-px h-4 bg-white/10 mx-1" />
+                                <button
+                                    onClick={() => setContentTypeFilter('image')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                        contentTypeFilter === 'image'
+                                            ? 'bg-white/10 text-white shadow-lg shadow-black/20'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <Folder className="w-4 h-4" />
+                                    {language === 'ru' ? 'Фото' : 'Photos'}
+                                    <span className="text-[10px] font-bold opacity-40 ml-1">
+                                        {folderStats.image}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setContentTypeFilter('video')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                        contentTypeFilter === 'video'
+                                            ? 'bg-white/10 text-white shadow-lg shadow-black/20'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <Folder className="w-4 h-4" />
+                                    {language === 'ru' ? 'Видео' : 'Video'}
+                                    <span className="text-[10px] font-bold opacity-40 ml-1">
+                                        {folderStats.video}
+                                    </span>
+                                </button>
+                                <button
+                                    onClick={() => setContentTypeFilter('audio')}
+                                    className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all ${
+                                        contentTypeFilter === 'audio'
+                                            ? 'bg-white/10 text-white shadow-lg shadow-black/20'
+                                            : 'text-white/40 hover:text-white hover:bg-white/5'
+                                    }`}
+                                >
+                                    <Folder className="w-4 h-4" />
+                                    {language === 'ru' ? 'Аудио' : 'Audio'}
+                                    <span className="text-[10px] font-bold opacity-40 ml-1">
+                                        {folderStats.audio}
+                                    </span>
+                                </button>
+                            </div>
+                        )}
                     </div>
 
-                    {groupedGenerations.length > 0 ? (
+                    {isCollectionsLoading || isFolderLoading ? (
+                        <div className="flex flex-col items-center justify-center py-32">
+                            <div className="w-12 h-12 border-4 border-white/10 border-t-white rounded-full animate-spin mb-4" />
+                            <p className="text-white/40 text-sm animate-pulse">
+                                {language === 'ru' ? 'Делаем...' : 'Loading...'}
+                            </p>
+                        </div>
+                    ) : (sidebarFolders.length > 0 || groupedGenerations.length > 0) ? (
                         <div className="space-y-12">
+                            {/* Folders in main view */}
+                            {showFoldersInMain && sidebarFolders.length > 0 && (
+                                <div className="space-y-6">
+                                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/20 flex items-center gap-4">
+                                        {language === 'ru' ? 'Папки' : 'Folders'}
+                                        <div className="h-px flex-1 bg-white/5" />
+                                    </h3>
+                                    <div 
+                                        className="grid gap-4 sm:gap-6"
+                                        style={{
+                                            gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
+                                        }}
+                                    >
+                                        {sidebarFolders.map((folder) => (
+                                            <FolderCard
+                                                key={folder.id}
+                                                id={folder.id}
+                                                name={folder.name}
+                                                count={folder.count}
+                                                onClick={() => {
+                                                    setActiveFolderId(folder.id);
+                                                    setActiveCategory('all');
+                                                }}
+                                                onRename={() => handleOpenRenameFolder(folder.id, folder.name)}
+                                                onDelete={() => handleDeleteFolder(folder.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {groupedGenerations.map(([label, items]) => (
                                 <div key={label} className="space-y-6">
                                     <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/20 flex items-center gap-4">
@@ -213,13 +573,13 @@ export function LibraryPage() {
                                     </h3>
 
                                     <div
-                                        className={activeCategory === 'audio' ? 'flex flex-col gap-4 max-w-5xl' : 'grid gap-4 sm:gap-6'}
-                                        style={activeCategory === 'audio' ? {} : {
+                                        className={(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) ? 'flex flex-col gap-4 max-w-5xl' : 'grid gap-4 sm:gap-6'}
+                                        style={(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) ? {} : {
                                             gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
                                         }}
                                     >
                                         {items.map((gen) => {
-                                            if (activeCategory === 'audio') {
+                                            if (activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) {
                                                 const tracks = getAudioTracks(gen);
                                                 return tracks.map((track, trackIdx) => {
                                                     const isCurrentTrack =
@@ -262,13 +622,8 @@ export function LibraryPage() {
                                 <Folder className="w-8 h-8 text-white/20" />
                             </div>
                             <h3 className="text-xl font-bold mb-2">
-                                {language === 'ru' ? 'Тут ничего нет' : 'Nothing here'}
+                                {language === 'ru' ? 'Тут пока ничего нет' : 'Nothing here yet'}
                             </h3>
-                            <p className="text-white/40">
-                                {language === 'ru'
-                                    ? 'Сделайте, чтобы было.'
-                                    : 'Create something to see it here.'}
-                            </p>
                         </div>
                     )}
                 </main>
@@ -287,13 +642,23 @@ export function LibraryPage() {
             {/* Upgrade Modal */}
             <UpgradeModal open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen} />
 
+            {/* Folder Modal */}
+            <FolderModal
+                open={isFolderModalOpen}
+                onOpenChange={setIsFolderModalOpen}
+                mode={folderModalMode}
+                initialName={folderToRename?.name}
+                onConfirm={handleFolderModalConfirm}
+            />
+
             {/* Preview Dialogs */}
             <ImageDetailDialog
                 image={selectedGeneration?.type === 'image' ? selectedGeneration : null}
                 open={selectedGeneration?.type === 'image'}
                 onOpenChange={(open) => !open && setSelectedGeneration(null)}
                 resolution="1K"
-                onRemix={() => {}}
+                onRemix={handleRemix}
+                onMakeVariations={handleMakeVariations}
                 onToggleLike={toggleFavorite}
                 generations={filteredGenerations.filter((g) => g.type === 'image')}
                 onSelectImage={setSelectedGeneration}
@@ -306,7 +671,7 @@ export function LibraryPage() {
                 models={videoModels}
                 aspectRatio="16:9"
                 duration="5"
-                onRemix={() => {}}
+                onRemix={handleRemix}
                 onToggleLike={toggleFavorite}
                 videos={filteredGenerations.filter((g) => g.type === 'video')}
                 onSelectVideo={setSelectedGeneration}
@@ -323,7 +688,7 @@ export function LibraryPage() {
             />
 
             {/* Bottom Audio Player */}
-            {activeCategory === 'audio' && (
+            {(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) && (
                 <AudioPlayerFooter
                     currentTrack={currentTrack}
                     isPlaying={isPlaying}

@@ -124,7 +124,7 @@ export function useAudioPlayer(audioGenerations: Generation[]) {
 
     // Play next track
     const playNextTrack = useCallback(() => {
-        if (!currentTrack) return;
+        if (!currentTrack || !Array.isArray(audioGenerations)) return;
         const gen = audioGenerations.find((g) => g.id === currentTrack.genId);
         if (!gen) return;
 
@@ -145,7 +145,7 @@ export function useAudioPlayer(audioGenerations: Generation[]) {
 
     // Play previous track
     const playPrevTrack = useCallback(() => {
-        if (!currentTrack) return;
+        if (!currentTrack || !Array.isArray(audioGenerations)) return;
         const gen = audioGenerations.find((g) => g.id === currentTrack.genId);
         if (!gen) return;
 

@@ -14,45 +14,36 @@ const TEMPLATES = [
         id: 'product',
         title: 'Карточка товара',
         description: 'Профессиональное фото для маркетплейсов',
-        image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80',
-        prompt_ru: 'Предметная съемка дорогих часов на чистом белом фоне, студийное освещение, 8к, высокая детализация',
-        prompt_en: 'Product photography of a high-end watch on a clean white background, studio lighting, 8k, highly detailed',
-        target: '/app/create/image'
-    },
-    {
-        id: 'remove-object',
-        title: 'Убрать объект',
-        description: 'Чистый фон без лишних деталей',
-        image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=800&q=80',
-        prompt_ru: 'Чистый пейзаж, широкий угол, убрать лишние объекты, нетронутая природа',
-        prompt_en: 'Clean landscape, wide angle, remove unwanted objects, pristine nature',
+        image: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/010102a2-9a78-497c-a40c-16883620b037/market-1768406785100.png?width=8000&height=8000&resize=contain',
+        prompt_ru: 'Профессиональная предметная фотосъёмка товара для интернет-магазина. Чистый нейтральный фон, мягкий студийный свет, высокая резкость, точная цветопередача. Товар расположен по центру кадра, без лишних объектов, без шума. Коммерческий стиль, подходящий для карточки товара на маркетплейсе. Фотореализм, высокое качество, ощущение премиального продукта.',
+        prompt_en: 'Professional product photography for an online store. Clean neutral background, soft studio light, high sharpness, accurate color reproduction. The product is centered in the frame, no extra objects, no noise. Commercial style suitable for a marketplace product card. Photorealism, high quality, premium product feel.',
         target: '/app/create/image'
     },
     {
         id: 'clothes',
-        title: 'Поменять одежду',
+        title: 'ИИ-Стилист',
         description: 'Примерь любой образ за секунды',
         image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?w=800&q=80',
         prompt_ru: 'Модель в роскошном красном шелковом платье, фон улицы Парижа, реалистичное освещение',
         prompt_en: 'Fashion model wearing a luxury red silk dress, Paris street background, realistic lighting',
-        target: '/app/create/image'
+        target: '/app/apps/stylist'
     },
     {
         id: 'face-swap',
         title: 'Заменить лицо',
         description: 'Реалистичная замена лиц на фото',
         image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80',
-        prompt_ru: 'Кинематографичный портрет человека с высокой детализацией, реалистичная текстура кожи',
-        prompt_en: 'Cinematic portrait of a person with highly detailed features, realistic skin texture',
+        prompt_ru: 'Заменить лицо персонажа на лицо с приложенной фотографии, сохранив естественные пропорции, выражение и освещение. Реалистичное совмещение, корректная перспектива, совпадение тона кожи и направления света. Без искажений, без артефактов, без изменения пола и возраста. Результат должен выглядеть как единая фотография.',
+        prompt_en: 'Replace the character\'s face with the face from the attached photo, maintaining natural proportions, expression and lighting. Realistic blending, correct perspective, matching skin tone and light direction. No distortions, no artifacts, no change in gender or age. The result should look like a single photograph.',
         target: '/app/create/image'
     },
     {
         id: '3d-model',
-        title: '3д модель',
+        title: '3D-фигурка',
         description: 'Объемные персонажи и объекты',
-        image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?w=800&q=80',
-        prompt_ru: '3D рендер милого робота, изометрический вид, эстетика мягкой игрушки, octane render, пастельные тона',
-        prompt_en: '3D render of a cute robot character, isometric view, soft toy aesthetic, octane render, pastel colors',
+        image: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/010102a2-9a78-497c-a40c-16883620b037/3d-1768406830139.png?width=8000&height=8000&resize=contain',
+        prompt_ru: 'Создай коммерческую коллекционную фигурку персонажа с приложенного изображения в масштабе 1/7. Реалистичный 3D-стиль, высокая детализация, материалы выглядят физически корректно. Фигурка размещена на компьютерном столе в реальной обстановке. Под фигуркой — круглая прозрачная акриловая подставка. На экране компьютера отображается процесс 3D-моделирования этой фигурки. Рядом с монитором стоит коробка от игрушки, оформленная в стиле премиальных коллекционных фигур. На упаковке напечатаны оригинальные двухмерные иллюстрации этой фигурки. Кинематографичный свет, фотореализм, коммерческий уровень качества.',
+        prompt_en: 'Create a commercial collectible figure of the character from the attached image in 1/7 scale. Realistic 3D style, high detail, materials look physically correct. The figure is placed on a computer desk in a real environment. Under the figure is a round transparent acrylic stand. The computer screen displays the process of 3D modeling this figure. Next to the monitor is a toy box designed in the style of premium collectible figures. Original 2D illustrations of this figure are printed on the package. Cinematic light, photorealism, commercial quality level.',
         target: '/app/create/image'
     },
     {
@@ -60,18 +51,9 @@ const TEMPLATES = [
         title: 'Студия Гибли',
         description: 'Атмосфера легендарного аниме',
         image: 'https://images.unsplash.com/photo-1578632738908-4521c726eeb4?w=800&q=80',
-        prompt_ru: 'Красивый пейзаж в стиле Студии Гибли, пышные зеленые холмы, синее небо с пушистыми белыми облаками, эстетика аниме',
-        prompt_en: 'Beautiful landscape in Studio Ghibli style, lush green hills, blue sky with fluffy white clouds, anime aesthetic',
+        prompt_ru: 'Портрет человека в анимационном стиле, вдохновлённом японской рисованной анимацией конца 90-х, студией Гибли. Мягкие линии, тёплая цветовая палитра, выразительные глаза, спокойное доброжелательное выражение лица. Плоское освещение без резких теней, акварельные текстуры, чистый фон с лёгким намёком на природу. Атмосфера уюта, спокойствия и лёгкой магии. Высокое качество, аккуратный контур, художественный стиль.',
+        prompt_en: 'Portrait of a person in animation style inspired by Japanese hand-drawn animation of the late 90s, Studio Ghibli. Soft lines, warm color palette, expressive eyes, calm friendly facial expression. Flat lighting without harsh shadows, watercolor textures, clean background with a light hint of nature. Atmosphere of comfort, peace and light magic. High quality, neat outline, artistic style.',
         target: '/app/create/image'
-    },
-    {
-        id: 'animate',
-        title: 'Анимировать фото',
-        description: 'Оживи свои воспоминания',
-        image: 'https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=800&q=80',
-        prompt_ru: 'Кинематографичное движение водопада в густом лесу, текущая вода, движущийся туман, высокое качество видео',
-        prompt_en: 'Cinematic movement of a waterfall in a lush forest, flowing water, moving mist, high quality video',
-        target: '/app/create/video'
     }
 ];
 
@@ -161,11 +143,11 @@ function TemplateCard({ item }: { item: typeof TEMPLATES[0] }) {
             href={`${item.target}?prompt=${encodeURIComponent(prompt)}`}
             className="flex-shrink-0 w-[280px] snap-start group"
         >
-            <div className="aspect-[4/3] rounded-xl overflow-hidden mb-3 relative bg-white/5">
+            <div className="aspect-square rounded-xl overflow-hidden mb-3 relative bg-white/5 border border-white/5">
                 <img 
                     src={item.image} 
                     alt={item.title} 
-                    className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+                    className="w-full h-full object-cover transition-all duration-500"
                 />
             </div>
             <h4 className="font-bold text-base mb-1">{item.title}</h4>
@@ -180,11 +162,11 @@ function AudioStyleCard({ item }: { item: typeof AUDIO_STYLES[0] }) {
             href={`${item.target}?style=${encodeURIComponent(item.style)}`}
             className="flex-shrink-0 w-[200px] snap-start group"
         >
-            <div className="aspect-square rounded-xl overflow-hidden mb-3 relative bg-white/5">
+            <div className="aspect-square rounded-xl overflow-hidden mb-3 relative bg-white/5 border border-white/5">
                 <img 
                     src={item.image} 
                     alt={item.title} 
-                    className="w-full h-full object-cover transition-opacity duration-300 group-hover:opacity-80"
+                    className="w-full h-full object-cover transition-all duration-500"
                 />
             </div>
             <div className="text-left px-1">
@@ -204,18 +186,18 @@ function ToolCardSquare({ item }: { item: any }) {
             href={item.href}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
-            className="flex-shrink-0 w-[180px] snap-start group"
+            className="flex-shrink-0 w-[216px] snap-start group"
         >
             <div className="aspect-square rounded-xl overflow-hidden mb-3 bg-[#1A1A1A] border border-white/5 relative">
                 {item.badge && (
-                    <div className="absolute top-2 right-2 z-10 px-2 py-0.5 rounded-full bg-yellow-500 text-black text-[8px] font-black uppercase tracking-widest shadow-lg">
+                    <div className="absolute top-3 right-3 z-10 px-2 py-0.5 rounded-full bg-yellow-500 text-black text-[8px] font-black uppercase tracking-widest shadow-lg">
                         {item.badge}
                     </div>
                 )}
                 <img 
                     src={isHovered ? item.hoverImage : item.image} 
                     alt={item.title} 
-                    className="w-full h-full object-cover transition-opacity duration-300"
+                    className="w-full h-full object-cover transition-all duration-500"
                 />
             </div>
             <div className="px-1">
@@ -233,7 +215,7 @@ export function HomePage() {
     const TOOLS_WITH_NANO = [
         {
             id: 'nano',
-            title: 'Nano Banana',
+            title: 'Nano Banana Pro',
             description: 'Лучшая генеративная модель',
             image: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/010102a2-9a78-497c-a40c-16883620b037/banana-apple-manzano-exoticfruitscouk-905674-1768392693560.jpg?width=8000&height=8000&resize=contain',
             hoverImage: 'https://slelguoygbfzlpylpxfs.supabase.co/storage/v1/render/image/public/project-uploads/010102a2-9a78-497c-a40c-16883620b037/banana-apple-manzano-exoticfruitscouk-905674-1768392693560.jpg?width=8000&height=8000&resize=contain',
@@ -244,9 +226,20 @@ export function HomePage() {
     ];
 
     return (
-        <div className="max-w-6xl mx-auto space-y-24 pb-32">
+        <div className="max-w-6xl mx-auto space-y-24 pb-32 relative">
+            {/* Grid background */}
+            <div
+                className="absolute left-1/2 -translate-x-1/2 w-screen -top-24 h-[800px] pointer-events-none z-0"
+                style={{
+                    backgroundImage: `linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)`,
+                    backgroundSize: '32px 32px',
+                    maskImage: 'radial-gradient(circle at 50% 0%, black 10%, transparent 75%)',
+                    WebkitMaskImage: 'radial-gradient(circle at 50% 0%, black 10%, transparent 75%)',
+                }}
+            />
+            
             {/* Hero Section */}
-            <section className="pt-12 text-center space-y-12">
+            <section className="pt-12 text-center space-y-12 relative z-10">
                 <div className="space-y-4">
                     <TypewriterTitle phrases={phrases} prefix="Сделай" />
                 </div>

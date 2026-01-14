@@ -7712,7 +7712,7 @@
         },
         "operationId": "postImageNano-bananaGenerate",
         "tags": [
-          "Image - Nano Banana"
+            "Image - Nano Banana Pro"
         ],
         "summary": "Generate image with Nano Banana Pro",
         "description": "Generates an image from text, optionally with reference images (max 8, 30MB each).",
