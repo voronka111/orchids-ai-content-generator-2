@@ -54,9 +54,7 @@ function NavItem({
         <Link
             href={href}
             className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-colors ${
-                active
-                    ? 'text-white'
-                    : 'text-muted-foreground hover:text-white'
+                active ? 'text-white' : 'text-muted-foreground hover:text-white'
             }`}
         >
             <Icon className={`w-5 h-5 ${active ? 'text-white' : ''}`} />
@@ -117,10 +115,10 @@ function HeaderDropdown({
                             asChild
                             className="rounded-xl focus:bg-white/10 focus:text-white data-[highlighted]:bg-white/10 data-[highlighted]:text-white cursor-pointer p-0"
                         >
-                                <Link
-                                    href={item.href}
-                                    className="flex items-start gap-3 w-full pl-3 pr-8 py-3 group/item"
-                                >
+                            <Link
+                                href={item.href}
+                                className="flex items-start gap-3 w-full pl-3 pr-8 py-3 group/item"
+                            >
                                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover/item:bg-white/10 transition-colors shrink-0">
                                     <item.icon className="w-5 h-5 text-white/40 group-hover/item:text-white transition-transform group-hover/item:scale-110" />
                                 </div>
@@ -419,7 +417,6 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             icon={item.icon}
                             label={item.label}
                             active={pathname === item.href}
-                            accent={index === 1}
                         />
                     ))}
                 </div>
