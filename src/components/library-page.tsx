@@ -161,7 +161,7 @@ export function LibraryPage() {
     };
 
     return (
-        <div className="relative min-h-screen -mt-6 -mx-[14px] sm:-mx-6 px-4 sm:px-8 py-8 overflow-hidden">
+        <div className="relative min-h-screen -mt-6 sm:-mx-6 px-4 sm:px-8 py-8 overflow-hidden">
             {/* Background Grid */}
             <div
                 className="absolute inset-0 pointer-events-none opacity-[0.03] z-0"

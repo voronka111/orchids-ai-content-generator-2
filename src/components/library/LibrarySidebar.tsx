@@ -88,47 +88,35 @@ export function LibrarySidebar({
         },
     ];
 
-    const apps = [
-        {
-            id: 'face-swap' as const,
-            label: language === 'ru' ? 'Замена лица' : 'Face Swap',
-            icon: Smile,
-            count: 0,
-        },
-        {
-            id: 'stylist' as const,
-            label: language === 'ru' ? 'Стилист' : 'Stylist',
-            icon: Palette,
-            count: 0,
-        },
-        {
-            id: 'relight' as const,
-            label: language === 'ru' ? 'Освещение' : 'Relight',
-            icon: Sun,
-            count: 0,
-        },
-    ];
-
     const renderCategoryButton = (
         id: CategoryType,
         label: string,
-        Icon: typeof Folder,
+        Icon: any,
         count: number
     ) => (
         <button
-            key={id}
             onClick={() => onCategoryChange(id)}
-            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all ${
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all group ${
                 activeCategory === id
                     ? 'bg-white/10 text-white'
                     : 'text-white/60 hover:bg-white/5 hover:text-white'
             }`}
         >
             <div className="flex items-center gap-3">
-                <Icon className={`w-4 h-4 ${activeCategory === id ? 'text-[#6F00FF]' : ''}`} />
+                <Icon
+                    className={`w-4 h-4 ${
+                        activeCategory === id ? 'text-white' : 'text-white/20 group-hover:text-white/40'
+                    }`}
+                />
                 <span className="text-sm font-medium">{label}</span>
             </div>
-            <span className="text-[10px] font-bold opacity-40">{count}</span>
+            <span
+                className={`text-[10px] font-bold ${
+                    activeCategory === id ? 'opacity-100' : 'opacity-40'
+                }`}
+            >
+                {count}
+            </span>
         </button>
     );
 
@@ -153,15 +141,6 @@ export function LibrarySidebar({
                     {tools.map((tool) =>
                         renderCategoryButton(tool.id, tool.label, tool.icon, tool.count)
                     )}
-                </div>
-            </div>
-
-            <div>
-                <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40 mb-4 px-3">
-                    {language === 'ru' ? 'Приложения' : 'Apps'}
-                </h2>
-                <div className="space-y-1">
-                    {apps.map((app) => renderCategoryButton(app.id, app.label, app.icon, app.count))}
                 </div>
             </div>
 

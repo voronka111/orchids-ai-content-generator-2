@@ -147,7 +147,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const navItems = [
-        { href: '/app/create', icon: Plus, label: t('nav.create') },
+        { href: '/app', icon: Home, label: t('nav.create') },
         { href: '/app/library', icon: FolderOpen, label: t('nav.library') },
         { href: '/app/profile', icon: User, label: t('nav.profile') },
     ];
@@ -187,37 +187,10 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             icon: Maximize,
         },
         {
-            href: '/app/tools/inpaint',
-            label: t('edit.inpaint'),
-            description: t('edit.inpaint.sub'),
-            icon: Scissors,
-        },
-        {
             href: '/app/tools/remove-bg',
             label: t('edit.removeBg'),
             description: t('edit.removeBg.sub'),
             icon: Eraser,
-        },
-    ];
-
-    const appItems = [
-        {
-            href: '/app/apps/face-swap',
-            label: t('app.faceSwap'),
-            description: t('app.faceSwap.sub'),
-            icon: Smile,
-        },
-        {
-            href: '/app/apps/relight',
-            label: t('app.relight'),
-            description: t('app.relight.sub'),
-            icon: Sun,
-        },
-        {
-            href: '/app/apps/stylist',
-            label: t('app.stylist'),
-            description: t('app.stylist.sub'),
-            icon: Palette,
         },
     ];
 
@@ -250,9 +223,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <OnboardingModal isOpen={showOnboarding} onClose={handleCloseOnboarding} />
             <div className="gradient-bg" />
 
-            <header className="fixed top-0 left-0 right-0 z-50 h-16">
-                <div className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-transparent backdrop-blur-xl [mask-image:linear-gradient(to_bottom,black_0%,black_40%,transparent_100%)] pointer-events-none" />
-                <div className="h-full px-[14px] sm:px-6 flex items-center justify-between max-w-[1440px] mx-auto relative z-10 border-b border-white/5">
+            <header className="fixed top-0 left-0 right-0 z-50 h-20 border-none">
+                <div className="absolute inset-0 bg-gradient-to-b from-black via-black/50 to-transparent pointer-events-none" />
+                <div className="h-full px-[14px] sm:px-6 flex items-center justify-between max-w-[1440px] mx-auto relative z-10">
                     <div className="flex items-center gap-4 md:gap-8">
                         <div className="flex items-center gap-2">
                             <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

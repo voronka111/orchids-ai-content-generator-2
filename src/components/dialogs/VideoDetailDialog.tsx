@@ -115,212 +115,134 @@ export function VideoDetailDialog({
                 <VisuallyHidden>
                     <DialogTitle>Video Details</DialogTitle>
                 </VisuallyHidden>
-                <div className="flex h-full w-full">
-                    {/* Video Preview */}
-                    <div
-                        className="flex-1 bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 relative cursor-pointer group/preview"
-                        onClick={() => onOpenChange(false)}
-                    >
-                        <button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                onOpenChange(false);
-                            }}
-                            className="absolute top-6 right-6 z-50 p-3 rounded-full bg-white/10 hover:bg-white/20 transition-all"
-                        >
-                            <X className="w-5 h-5 text-white" />
-                        </button>
-
-                        {/* Navigation Arrows */}
-                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-8 pointer-events-none">
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePrevious();
-                                }}
-                                className="p-4 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all pointer-events-auto opacity-0 group-hover/preview:opacity-100 disabled:opacity-0"
-                                disabled={videos.findIndex((v) => v.id === video.id) === 0}
-                            >
-                                <ChevronLeft className="w-6 h-6" />
-                            </button>
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleNext();
-                                }}
-                                className="p-4 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all pointer-events-auto opacity-0 group-hover/preview:opacity-100 disabled:opacity-0"
-                                disabled={
-                                    videos.findIndex((v) => v.id === video.id) === videos.length - 1
-                                }
-                            >
-                                <ChevronRight className="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <div className="relative max-w-full max-h-[80%] flex flex-col items-center gap-6">
+                    <div className="flex-1 flex flex-col h-full overflow-y-auto no-scrollbar">
+                        {/* Video Section */}
+                        <div className="w-full bg-black flex items-center justify-center p-4 sm:p-12 min-h-[300px] sm:min-h-[500px] relative">
                             <video
                                 key={currentAsset?.url}
                                 src={currentAsset?.url || ''}
-                                className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl"
+                                className="max-w-full max-h-[70vh] w-auto h-auto object-contain rounded-2xl shadow-2xl"
                                 controls
                                 autoPlay
-                                onClick={(e) => e.stopPropagation()}
                             />
 
-                            {/* Variations Thumbnails */}
-                            {hasMultipleAssets && (
-                                <div
-                                    className="flex items-center gap-3 p-3 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-full no-scrollbar"
-                                    onClick={(e) => e.stopPropagation()}
-                                >
+                             {/* Variations Thumbnails */}
+                             {hasMultipleAssets && (
+                                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-[90%] no-scrollbar">
                                     {video.result_assets?.map((asset, index) => (
                                         <button
                                             key={index}
                                             onClick={() => setSelectedAssetIndex(index)}
-                                            className={`relative w-24 h-16 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
+                                            className={`relative w-20 h-14 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
                                                 selectedAssetIndex === index
-                                                    ? 'border-[#6F00FF] scale-105'
-                                                    : 'border-transparent hover:border-white/20'
+                                                    ? 'border-[#6F00FF]'
+                                                    : 'border-transparent'
                                             }`}
                                         >
-                                            <video
-                                                src={asset.url}
-                                                className="w-full h-full object-cover"
-                                                muted
-                                            />
+                                            <video src={asset.url} className="w-full h-full object-cover" muted />
                                         </button>
                                     ))}
                                 </div>
                             )}
                         </div>
-                    </div>
 
-                    {/* Details Panel */}
-                    <div className="w-[320px] h-full bg-[#0A0A0B] border-l border-white/10 flex flex-col overflow-hidden">
-                        <div className="flex-1 overflow-y-auto p-6 space-y-10">
-                            {/* Prompt Section */}
-                            <div>
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-2 text-white/50">
-                                        <span className="text-xs font-semibold uppercase tracking-wider">
+                        {/* Info Section */}
+                        <div className="w-full max-w-2xl mx-auto px-6 pb-40">
+                            <div className="space-y-8 py-8">
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <h3 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Sparkles className="w-3.5 h-3.5" />
                                             {language === 'ru' ? 'Промпт' : 'Prompt'}
-                                        </span>
+                                        </h3>
+                                        <button
+                                            onClick={handleCopyPrompt}
+                                            className="text-[10px] font-bold text-[#DFFF1A] uppercase tracking-widest px-3 py-1 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                                        >
+                                            {language === 'ru' ? 'Копировать' : 'Copy'}
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={handleCopyPrompt}
-                                        className="px-3 py-1 text-xs font-semibold bg-white/10 hover:bg-white/20 rounded-lg transition-all text-white/70"
-                                    >
-                                        {language === 'ru' ? 'Копировать' : 'Copy'}
-                                    </button>
+                                    <p className="text-base text-white/90 leading-relaxed font-medium bg-white/5 p-5 rounded-2xl border border-white/5">
+                                        {video.prompt}
+                                    </p>
                                 </div>
-                                <p className="text-sm text-white/90 leading-relaxed font-medium">
-                                    {video.prompt}
-                                </p>
-                            </div>
 
-                            {/* Parameters Section */}
-                            <div className="bg-white/5 rounded-2xl p-5 border border-white/5 space-y-5">
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/40">
-                                        {language === 'ru' ? 'Модель' : 'Model'}
-                                    </span>
-                                    <span className="text-sm font-bold text-white/90">
-                                        {models.find((m) => m.id === video.model)?.name ||
-                                            video.model}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/40">
-                                        {language === 'ru' ? 'Формат' : 'Aspect'}
-                                    </span>
-                                    <span className="text-sm font-bold text-white/90">
-                                        {aspectRatio}
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/40">
-                                        {language === 'ru' ? 'Время' : 'Duration'}
-                                    </span>
-                                    <span className="text-sm font-bold text-[#FFDC74]">
-                                        {duration}s
-                                    </span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-white/40">
-                                        {language === 'ru' ? 'Создано' : 'Created'}
-                                    </span>
-                                    <span className="text-sm font-bold text-white/90 text-right">
-                                        {new Date(video.created_at).toLocaleDateString(
-                                            language === 'ru' ? 'ru-RU' : 'en-US'
-                                        )}
-                                    </span>
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Model</span>
+                                        <p className="text-sm text-white/70 font-bold truncate">
+                                            {models.find((m) => m.id === video.model)?.name || video.model}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Aspect</span>
+                                        <p className="text-sm text-white/70 font-bold uppercase">{aspectRatio}</p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Duration</span>
+                                        <p className="text-sm text-white/70 font-bold">{duration}s</p>
+                                    </div>
+                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/5 space-y-1">
+                                        <span className="text-[10px] text-white/30 uppercase font-bold tracking-wider">Created</span>
+                                        <p className="text-sm text-white/70 font-bold">
+                                            {new Date(video.created_at).toLocaleDateString()}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        {/* Actions */}
-                        <div className="p-6 border-t border-white/10 space-y-4">
-                            <div className="grid grid-cols-2 gap-3">
-                                <button
-                                    onClick={handleDownload}
-                                    className="py-4 rounded-2xl bg-[#6F00FF] hover:bg-[#7F00FF] text-white font-bold flex items-center justify-center gap-3 text-xs transition-all active:scale-95 shadow-[0_0_30px_rgba(111,0,255,0.2)]"
-                                >
-                                    <Download className="w-4 h-4 text-white" />
-                                    {language === 'ru' ? 'Скачать' : 'Download'}
-                                </button>
-                                <button
-                                    onClick={handleRemix}
-                                    className="py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold border border-white/5 transition-all flex items-center justify-center gap-3 text-xs active:scale-95"
-                                >
-                                    <RefreshCw className="w-4 h-4 text-white" />
-                                    {language === 'ru' ? 'Переделать' : 'Remake'}
-                                </button>
-                            </div>
+                    {/* Actions Bottom Bar - Fixed */}
+                    <div className="fixed bottom-0 left-0 right-0 p-6 bg-black/60 backdrop-blur-2xl border-t border-white/10 z-50">
+                        <div className="max-w-2xl mx-auto flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={handleRemix}
+                                className="flex-1 py-4 rounded-2xl bg-[#DFFF1A] hover:bg-[#EFFF4A] text-black font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all active:scale-[0.98] shadow-[0_0_30px_rgba(223,255,26,0.2)]"
+                            >
+                                <RefreshCw className="w-4 h-4" />
+                                {language === 'ru' ? 'Переделать' : 'Remake'}
+                            </button>
 
                             <div className="flex items-center gap-3">
                                 <button
-                                    onClick={() => onToggleLike(video.id)}
-                                    className={`flex-1 py-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white font-bold border border-white/5 transition-all flex items-center justify-center gap-3 text-xs active:scale-95 group ${
-                                        video.is_favorite ? 'text-red-500' : ''
-                                    }`}
+                                    onClick={handleDownload}
+                                    className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10"
+                                    title="Download"
                                 >
-                                    <Heart
-                                        className={`w-4 h-4 transition-colors ${
-                                            video.is_favorite
-                                                ? 'fill-current text-white'
-                                                : 'text-white/40 group-hover:text-white'
-                                        }`}
-                                    />
-                                    {language === 'ru' ? 'В избранное' : 'Favorite'}
+                                    <Download className="w-5 h-5" />
+                                </button>
+                                <button
+                                    className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10"
+                                    title="Share"
+                                >
+                                    <Share2 className="w-5 h-5" />
+                                </button>
+                                <button
+                                    onClick={() => onToggleLike(video.id)}
+                                    className={`w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${video.is_favorite ? 'text-red-500' : 'text-white'}`}
+                                    title="Favorite"
+                                >
+                                    <Heart className={`w-5 h-5 ${video.is_favorite ? 'fill-current' : ''}`} />
                                 </button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                        <button className="p-4 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 group active:scale-95">
-                                            <MoreHorizontal className="w-5 h-5 text-white/40 group-hover:text-white" />
+                                        <button className="w-14 h-14 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all border border-white/10">
+                                            <MoreHorizontal className="w-5 h-5" />
                                         </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent
-                                        align="end"
-                                        className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]"
-                                    >
+                                    <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
                                         <DropdownMenuItem className="gap-3 py-3 rounded-xl cursor-pointer focus:bg-white/10">
-                                            <FolderPlus className="w-4 h-4 text-white/40" />
-                                            <span className="text-sm font-medium">
-                                                {language === 'ru' ? 'В папку' : 'Add to folder'}
-                                            </span>
+                                            <FolderPlus className="w-4 h-4 text-white/40" /> {language === 'ru' ? 'В папку' : 'Add to folder'}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem className="gap-3 py-3 rounded-xl text-red-500 focus:text-red-500 focus:bg-red-500/10 cursor-pointer">
-                                            <Trash2 className="w-4 h-4" />
-                                            <span className="text-sm font-medium">
-                                                {language === 'ru' ? 'Удалить' : 'Delete'}
-                                            </span>
+                                            <Trash2 className="w-4 h-4" /> {language === 'ru' ? 'Удалить' : 'Delete'}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
                             </div>
                         </div>
                     </div>
-                </div>
             </DialogContent>
         </Dialog>
     );

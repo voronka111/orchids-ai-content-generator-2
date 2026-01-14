@@ -66,7 +66,7 @@ export function ImageGenerationBar({
     fileInputRef,
     onFileInputChange,
 }: ImageGenerationBarProps) {
-    const { t } = useLanguage();
+    const { t, language } = useLanguage();
 
     return (
         <div className="fixed bottom-0 md:bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none px-0 md:px-6 mb-[64px] md:mb-0">
@@ -87,26 +87,22 @@ export function ImageGenerationBar({
                         </div>
                     )}
 
-                    <div className="flex items-center gap-3 mb-2">
-                        <button
-                            onClick={onOpenFilePicker}
-                            className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors py-1.5 px-3 rounded-xl bg-white/5"
-                        >
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>{t('drag.hint')}</span>
-                        </button>
-                    </div>
-
                     <textarea
                         value={prompt}
                         onChange={(e) => onPromptChange(e.target.value)}
-                        placeholder={t('prompt.placeholder')}
+                        placeholder={t('prompt.placeholder') + (language === 'ru' ? ' или приложите изображение' : ' or attach an image')}
                         className="w-full bg-transparent resize-none outline-none text-white placeholder:text-white/20 min-h-[44px] font-medium text-sm mb-4 leading-relaxed"
                         rows={1}
                     />
 
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-2 flex-wrap">
+                            <button
+                                onClick={onOpenFilePicker}
+                                className="flex items-center justify-center text-white/40 hover:text-white transition-colors w-[40px] h-[36px] rounded-xl bg-white/5 border border-white/10"
+                            >
+                                <Plus className="w-3.5 h-3.5" />
+                            </button>
                             <ModelSelector
                                 models={models}
                                 value={selectedModelId}

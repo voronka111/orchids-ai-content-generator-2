@@ -42,12 +42,13 @@ export function TypewriterTitle({ phrases, prefix = 'Сделай' }: Typewriter
 
     return (
         <motion.h1
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-3xl sm:text-4xl font-bold mb-3 min-h-[1.2em]"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-xl sm:text-2xl font-black text-center flex items-center justify-center gap-2 whitespace-nowrap overflow-hidden"
         >
-            {prefix} <span className="text-white/80">{text}</span>
-            <span className="animate-pulse ml-1 inline-block w-[2px] h-[0.8em] bg-current align-middle" />
+            <span>{prefix}</span>
+            <span className="text-white/80">{text}</span>
+            <span className="animate-pulse inline-block w-[2px] h-[0.7em] bg-[#6F00FF] align-middle" />
         </motion.h1>
     );
 }

@@ -863,12 +863,6 @@ export function LandingPage() {
             icon: Maximize,
         },
         {
-            href: '/app/tools/inpaint',
-            label: { ru: 'Заменить', en: 'Inpaint' },
-            description: { ru: 'Изменить детали', en: 'Change details' },
-            icon: Scissors,
-        },
-        {
             href: '/app/tools/remove-bg',
             label: { ru: 'Удалить фон', en: 'Remove BG' },
             description: { ru: 'Прозрачный фон', en: 'Transparent BG' },

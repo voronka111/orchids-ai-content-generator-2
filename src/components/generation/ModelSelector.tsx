@@ -45,9 +45,9 @@ export function ModelSelector({
             >
                 {models.map((m) => (
                     <SelectItem key={m.id} value={m.id} className="rounded-xl py-2.5">
-                        <div className="flex items-center justify-between w-full gap-8">
-                            <span className="font-medium">{m.name}</span>
-                            <span className="text-credits font-mono text-[10px] font-black">
+                        <div className="flex items-center justify-between w-[220px] sm:w-[280px]">
+                            <span className="font-medium truncate pr-2">{m.name}</span>
+                            <span className="text-credits font-mono text-[10px] font-black shrink-0">
                                 {m.credits_cost}
                             </span>
                         </div>
