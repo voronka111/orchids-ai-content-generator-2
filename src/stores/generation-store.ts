@@ -40,6 +40,10 @@ interface GenerationState {
     removeGeneration: (id: string) => void;
     toggleFavorite: (id: string) => Promise<void>;
 
+    // Likes
+    likedIds: Set<string>;
+    fetchLikedIds: () => Promise<void>;
+
     // API methods
     fetchHistory: (reset?: boolean) => Promise<void>;
     pollGenerationStatus: (id: string) => Promise<void>;
@@ -247,6 +251,35 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
     error: null,
     hasMore: true,
     offset: 0,
+    likedIds: new Set<string>(),
+
+    fetchLikedIds: async () => {
+        try {
+            const { data, error } = await api.GET('/likes/my');
+            if (error) {
+                console.error('Failed to fetch liked IDs:', error);
+                return;
+            }
+
+            if (data && typeof data === 'object' && 'data' in data) {
+                const result = (data as any).data;
+                if (result && Array.isArray(result.generation_ids)) {
+                    const likedSet = new Set<string>(result.generation_ids);
+                    set({ likedIds: likedSet });
+
+                    // Update is_favorite on existing generations
+                    set((state) => ({
+                        generations: state.generations.map((g) => ({
+                            ...g,
+                            is_favorite: likedSet.has(g.id),
+                        })),
+                    }));
+                }
+            }
+        } catch (err) {
+            console.error('Failed to fetch liked IDs:', err);
+        }
+    },
 
     addGeneration: (generation) => {
         set((state) => ({
@@ -272,40 +305,32 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
         if (!gen) return;
 
         const newState = !gen.is_favorite;
+        // Optimistic update
         get().updateGeneration(id, { is_favorite: newState });
 
         try {
-            // Find or create "Избранное" collection
-            const { data: collections } = await api.GET('/collections/');
-            const collectionsList = collections as Array<{ id: string; name: string }> | undefined;
-            let favoritesCollection = collectionsList?.find(
-                (c) => c.name === 'Избранное' || c.name === 'Favorites'
-            );
+            const { data, error } = await api.POST('/likes/toggle', {
+                body: { generation_id: id },
+            });
 
-            if (!favoritesCollection) {
-                const { data: newCol } = await api.POST('/collections/', {
-                    body: { name: 'Избранное' },
-                });
-                favoritesCollection = newCol;
+            if (error) {
+                // Revert on error
+                get().updateGeneration(id, { is_favorite: !newState });
+                console.error('Failed to toggle like:', error);
+                return;
             }
 
-            if (favoritesCollection) {
-                if (newState) {
-                    await api.POST('/collections/{id}/items', {
-                        params: { path: { id: favoritesCollection.id } },
-                        body: { generation_id: id } as any,
-                    });
-                } else {
-                    await api.DELETE('/collections/{id}/items/{generationId}', {
-                        params: {
-                            path: { id: favoritesCollection.id, generationId: id },
-                        },
-                    });
+            // Sync with server response
+            if (data && typeof data === 'object' && 'data' in data) {
+                const result = (data as any).data;
+                if (result && typeof result.liked === 'boolean') {
+                    get().updateGeneration(id, { is_favorite: result.liked });
                 }
             }
         } catch (err) {
-            console.error('Failed to toggle favorite in collections:', err);
-            // Revert local state on error? Maybe just log it for now as per user's "just add it"
+            // Revert on error
+            get().updateGeneration(id, { is_favorite: !newState });
+            console.error('Failed to toggle like:', err);
         }
     },
 
@@ -342,6 +367,7 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                     pagination: { has_more: boolean };
                 };
 
+                const { likedIds } = get();
                 set((state) => {
                     const newGenerations = reset
                         ? historyData.data
@@ -351,13 +377,24 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
                         new Map(newGenerations.map((g) => [g.id, g])).values()
                     );
 
+                    // Apply liked status from likedIds
+                    const withLikedStatus = uniqueGenerations.map((g) => ({
+                        ...g,
+                        is_favorite: likedIds.has(g.id) || g.is_favorite,
+                    }));
+
                     return {
-                        generations: uniqueGenerations,
+                        generations: withLikedStatus,
                         hasMore: historyData.pagination.has_more,
                         offset: newOffset + historyData.data.length,
                         isLoading: false,
                     };
                 });
+
+                // Fetch liked IDs on initial load to sync favorites
+                if (reset) {
+                    get().fetchLikedIds();
+                }
             } else {
                 set({
                     generations: reset ? [] : get().generations,

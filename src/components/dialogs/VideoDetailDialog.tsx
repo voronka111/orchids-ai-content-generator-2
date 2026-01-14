@@ -22,7 +22,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/lib/language-context';
-import { Generation } from '@/stores/generation-store';
+import { Generation, useGenerationStore } from '@/stores/generation-store';
 import { Model } from '@/stores/models-store';
 import { useEffect, useState, useCallback } from 'react';
 
@@ -56,6 +56,10 @@ export function VideoDetailDialog({
     const { language } = useLanguage();
     const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
     const [isAddToCollectionOpen, setIsAddToCollectionOpen] = useState(false);
+
+    // Get fresh generation data from store to ensure is_favorite is always current
+    const storeGenerations = useGenerationStore((state) => state.generations);
+    const currentVideo = video ? storeGenerations.find((g) => g.id === video.id) || video : null;
 
     // Reset asset index when video changes
     useEffect(() => {
@@ -241,12 +245,14 @@ export function VideoDetailDialog({
                             <button
                                 onClick={() => onToggleLike(video.id)}
                                 className={`w-14 h-14 rounded-xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${
-                                    video.is_favorite ? 'text-red-500' : 'text-white'
+                                    currentVideo?.is_favorite ? 'text-red-500' : 'text-white'
                                 }`}
                                 title="Favorite"
                             >
                                 <Heart
-                                    className={`w-5 h-5 ${video.is_favorite ? 'fill-current' : ''}`}
+                                    className={`w-5 h-5 ${
+                                        currentVideo?.is_favorite ? 'fill-current' : ''
+                                    }`}
                                 />
                             </button>
                             <DropdownMenu>

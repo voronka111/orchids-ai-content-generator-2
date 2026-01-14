@@ -1,14 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLanguage } from '@/lib/language-context';
-import { useCollectionsStore, Collection } from '@/stores/collections-store';
+import { useFoldersStore } from '@/stores/folders-store';
 import { Folder, Plus, Check, Loader2, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,48 +21,47 @@ export function AddToCollectionModal({
     onOpenChange,
 }: AddToCollectionModalProps) {
     const { language } = useLanguage();
-    const { 
-        collections, 
-        fetchCollections, 
-        addToCollection, 
-        removeFromCollection, 
-        createCollection,
-        getCollectionsForGeneration 
-    } = useCollectionsStore();
+    const {
+        folders,
+        fetchFolders,
+        addToFolder,
+        removeFromFolder,
+        createFolder,
+        getFoldersForGeneration,
+    } = useFoldersStore();
     const { generations, toggleFavorite } = useGenerationStore();
 
-    const [selectedCollectionIds, setSelectedCollectionIds] = useState<string[]>([]);
+    const [selectedFolderIds, setSelectedFolderIds] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [newFolderName, setNewFolderName] = useState('');
 
-    const generation = generations.find(g => g.id === generationId);
+    const generation = generations.find((g) => g.id === generationId);
     const isFavorite = generation?.is_favorite || false;
 
     useEffect(() => {
         if (open) {
             setIsLoading(true);
-            Promise.all([
-                fetchCollections(),
-                getCollectionsForGeneration(generationId)
-            ]).then(([_, currentCollections]) => {
-                setSelectedCollectionIds(currentCollections.map(c => c.id));
-                setIsLoading(false);
-            });
+            Promise.all([fetchFolders(), getFoldersForGeneration(generationId)]).then(
+                ([_, currentFolders]) => {
+                    setSelectedFolderIds(currentFolders.map((f) => f.id));
+                    setIsLoading(false);
+                }
+            );
         }
     }, [open, generationId]);
 
-    const handleToggleCollection = async (collectionId: string) => {
-        const isSelected = selectedCollectionIds.includes(collectionId);
+    const handleToggleFolder = async (folderId: string) => {
+        const isSelected = selectedFolderIds.includes(folderId);
         if (isSelected) {
-            const success = await removeFromCollection(collectionId, generationId);
+            const success = await removeFromFolder(folderId, generationId);
             if (success) {
-                setSelectedCollectionIds(prev => prev.filter(id => id !== collectionId));
+                setSelectedFolderIds((prev) => prev.filter((id) => id !== folderId));
             }
         } else {
-            const success = await addToCollection(collectionId, generationId);
+            const success = await addToFolder(folderId, generationId);
             if (success) {
-                setSelectedCollectionIds(prev => [...prev, collectionId]);
+                setSelectedFolderIds((prev) => [...prev, folderId]);
             }
         }
     };
@@ -76,13 +70,13 @@ export function AddToCollectionModal({
         if (!newFolderName.trim()) return;
         setIsCreating(true);
         const folderName = newFolderName.trim();
-        const newCol = await createCollection(folderName);
-        if (newCol) {
-            await addToCollection(newCol.id, generationId);
-            setSelectedCollectionIds(prev => [...prev, newCol.id]);
+        const newFolder = await createFolder(folderName);
+        if (newFolder) {
+            await addToFolder(newFolder.id, generationId);
+            setSelectedFolderIds((prev) => [...prev, newFolder.id]);
             setNewFolderName('');
-            // Refresh collections to ensure sidebar is updated
-            fetchCollections();
+            // Refresh folders to ensure sidebar is updated
+            fetchFolders();
         }
         setIsCreating(false);
     };
@@ -105,7 +99,11 @@ export function AddToCollectionModal({
                         }`}
                     >
                         <div className="flex items-center gap-3">
-                            <Heart className={`w-4 h-4 ${isFavorite ? 'text-red-500 fill-red-500' : 'text-white/20'}`} />
+                            <Heart
+                                className={`w-4 h-4 ${
+                                    isFavorite ? 'text-red-500 fill-red-500' : 'text-white/20'
+                                }`}
+                            />
                             <span className="text-sm font-medium">
                                 {language === 'ru' ? 'Избранное' : 'Favorites'}
                             </span>
@@ -115,35 +113,44 @@ export function AddToCollectionModal({
 
                     <div className="h-px bg-white/5 mx-[-24px]" />
 
-                    {/* Collections list */}
+                    {/* Folders list */}
                     <div className="max-h-[300px] overflow-y-auto space-y-1 -mx-2 px-2 custom-scrollbar">
                         {isLoading ? (
                             <div className="flex items-center justify-center py-8">
                                 <Loader2 className="w-6 h-6 animate-spin text-white/20" />
                             </div>
-                        ) : collections.length > 0 ? (
-                            collections
-                                .filter(c => c.name !== 'Избранное' && c.name !== 'Favorites')
-                                .map((col) => {
-                                const isSelected = selectedCollectionIds.includes(col.id);
-                                return (
-                                    <button
-                                        key={col.id}
-                                        onClick={() => handleToggleCollection(col.id)}
-                                        className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
-                                            isSelected ? 'bg-white/10 text-white' : 'hover:bg-white/5 text-white/60'
-                                        }`}
-                                    >
+                        ) : folders.length > 0 ? (
+                            folders
+                                .filter((f) => f.name !== 'Избранное' && f.name !== 'Favorites')
+                                .map((folder) => {
+                                    const isSelected = selectedFolderIds.includes(folder.id);
+                                    return (
+                                        <button
+                                            key={folder.id}
+                                            onClick={() => handleToggleFolder(folder.id)}
+                                            className={`w-full flex items-center justify-between p-3 rounded-xl transition-all ${
+                                                isSelected
+                                                    ? 'bg-white/10 text-white'
+                                                    : 'hover:bg-white/5 text-white/60'
+                                            }`}
+                                        >
                                             <div className="flex items-center gap-3">
-                                                <Folder className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-white/20'}`} />
+                                                <Folder
+                                                    className={`w-4 h-4 ${
+                                                        isSelected ? 'text-white' : 'text-white/20'
+                                                    }`}
+                                                />
                                                 <span className="text-sm font-medium">
-                                                    {col.name || (language === 'ru' ? 'Новая папка' : 'Untitled Folder')}
+                                                    {folder.name ||
+                                                        (language === 'ru'
+                                                            ? 'Новая папка'
+                                                            : 'Untitled Folder')}
                                                 </span>
                                             </div>
-                                        {isSelected && <Check className="w-4 h-4 text-white" />}
-                                    </button>
-                                );
-                            })
+                                            {isSelected && <Check className="w-4 h-4 text-white" />}
+                                        </button>
+                                    );
+                                })
                         ) : (
                             <p className="text-center py-4 text-sm text-white/40">
                                 {language === 'ru' ? 'Папок пока нет' : 'No folders yet'}
@@ -162,8 +169,8 @@ export function AddToCollectionModal({
                             onKeyDown={(e) => e.key === 'Enter' && handleCreateFolder()}
                             className="bg-white/5 border-white/10"
                         />
-                        <Button 
-                            size="icon" 
+                        <Button
+                            size="icon"
                             onClick={handleCreateFolder}
                             disabled={!newFolderName.trim() || isCreating}
                             className="shrink-0"

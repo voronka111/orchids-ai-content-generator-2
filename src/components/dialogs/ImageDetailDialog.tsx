@@ -25,7 +25,7 @@ import {
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useLanguage } from '@/lib/language-context';
-import { Generation } from '@/stores/generation-store';
+import { Generation, useGenerationStore } from '@/stores/generation-store';
 import { useEffect, useState, useCallback } from 'react';
 import { toast } from 'sonner';
 
@@ -58,6 +58,10 @@ export function ImageDetailDialog({
     const router = useRouter();
     const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
     const [isAddToCollectionOpen, setIsAddToCollectionOpen] = useState(false);
+
+    // Get fresh generation data from store to ensure is_favorite is always current
+    const storeGenerations = useGenerationStore((state) => state.generations);
+    const currentImage = image ? storeGenerations.find((g) => g.id === image.id) || image : null;
 
     useEffect(() => {
         setSelectedAssetIndex(0);
@@ -137,61 +141,68 @@ export function ImageDetailDialog({
                 <VisuallyHidden>
                     <DialogTitle>Image Details</DialogTitle>
                 </VisuallyHidden>
-                
+
                 <div className="flex flex-col lg:flex-row h-full w-full relative">
                     {/* Header Controls (Floating - Mobile Only) */}
                     <div className="absolute top-0 left-0 right-0 z-50 p-4 flex justify-between items-center pointer-events-none lg:hidden">
-                                <button
-                                    onClick={() => onOpenChange(false)}
-                                    className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all pointer-events-auto"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                                <div className="flex gap-2 pointer-events-auto">
-                                     <button
-                                        onClick={handlePrevious}
-                                        className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
-                                        disabled={generations.findIndex((g) => g.id === image.id) === 0}
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
+                        <button
+                            onClick={() => onOpenChange(false)}
+                            className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all pointer-events-auto"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                        <div className="flex gap-2 pointer-events-auto">
+                            <button
+                                onClick={handlePrevious}
+                                className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                disabled={generations.findIndex((g) => g.id === image.id) === 0}
+                            >
+                                <ChevronLeft className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={handleNext}
+                                className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
+                                disabled={
+                                    generations.findIndex((g) => g.id === image.id) ===
+                                    generations.length - 1
+                                }
+                            >
+                                <ChevronRight className="w-5 h-5" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Left: Image Display (Desktop) / Top: Image Display (Mobile) */}
+                    <div className="flex-1 relative flex items-center justify-center bg-black p-4 lg:p-12 min-h-0">
+                        <img
+                            src={currentAsset?.url || ''}
+                            alt=""
+                            className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl lg:rounded-3xl shadow-2xl transition-transform duration-300"
+                        />
+
+                        {/* Variations Thumbnails */}
+                        {hasMultipleAssets && (
+                            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-[90%] scrollbar-hide">
+                                {image.result_assets?.map((asset, index) => (
                                     <button
-                                        onClick={handleNext}
-                                        className="p-3 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
-                                        disabled={generations.findIndex((g) => g.id === image.id) === generations.length - 1}
+                                        key={index}
+                                        onClick={() => setSelectedAssetIndex(index)}
+                                        className={`relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
+                                            selectedAssetIndex === index
+                                                ? 'border-[#6F00FF]'
+                                                : 'border-transparent'
+                                        }`}
                                     >
-                                        <ChevronRight className="w-5 h-5" />
+                                        <img
+                                            src={asset.url}
+                                            alt=""
+                                            className="w-full h-full object-cover"
+                                        />
                                     </button>
-                                </div>
+                                ))}
                             </div>
-
-                            {/* Left: Image Display (Desktop) / Top: Image Display (Mobile) */}
-                            <div className="flex-1 relative flex items-center justify-center bg-black p-4 lg:p-12 min-h-0">
-                                <img
-                                    src={currentAsset?.url || ''}
-                                    alt=""
-                                    className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl lg:rounded-3xl shadow-2xl transition-transform duration-300"
-                                />
-
-                                 {/* Variations Thumbnails */}
-                                 {hasMultipleAssets && (
-                                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/40 backdrop-blur-md border border-white/10 overflow-x-auto max-w-[90%] scrollbar-hide">
-                                        {image.result_assets?.map((asset, index) => (
-                                            <button
-                                                key={index}
-                                                onClick={() => setSelectedAssetIndex(index)}
-                                                className={`relative w-12 h-12 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
-                                                    selectedAssetIndex === index
-                                                        ? 'border-[#6F00FF]'
-                                                        : 'border-transparent'
-                                                }`}
-                                            >
-                                                <img src={asset.url} alt="" className="w-full h-full object-cover" />
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
+                        )}
+                    </div>
 
                     {/* Right: Info Panel (Desktop) / Bottom: Info Panel (Mobile) */}
                     <div className="w-full lg:w-[450px] bg-[#0A0A0A] border-l border-white/5 flex flex-col h-[50vh] lg:h-full relative overflow-hidden">
@@ -208,7 +219,10 @@ export function ImageDetailDialog({
                                 <button
                                     onClick={handleNext}
                                     className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all disabled:opacity-30"
-                                    disabled={generations.findIndex((g) => g.id === image.id) === generations.length - 1}
+                                    disabled={
+                                        generations.findIndex((g) => g.id === image.id) ===
+                                        generations.length - 1
+                                    }
                                 >
                                     <ChevronRight className="w-5 h-5" />
                                 </button>
@@ -232,7 +246,9 @@ export function ImageDetailDialog({
                                     <button
                                         onClick={handleCopyPrompt}
                                         className="p-2 rounded-2xl bg-white/5 hover:bg-white/10 text-white/60 transition-colors"
-                                        title={language === 'ru' ? 'Копировать промпт' : 'Copy prompt'}
+                                        title={
+                                            language === 'ru' ? 'Копировать промпт' : 'Copy prompt'
+                                        }
                                     >
                                         <Copy className="w-4 h-4" />
                                     </button>
@@ -245,21 +261,35 @@ export function ImageDetailDialog({
                             {/* Metadata Grid */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1">
-                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Model</span>
-                                    <p className="text-sm text-white/70 font-bold truncate">{image.model}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Quality</span>
-                                    <p className="text-sm text-white/70 font-bold uppercase">{resolution}</p>
-                                </div>
-                                <div className="space-y-1">
-                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Size</span>
-                                    <p className="text-sm text-white/70 font-bold">
-                                        {currentAsset?.size ? `${Math.round(currentAsset.size / 1024)} KB` : 'N/A'}
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                                        Model
+                                    </span>
+                                    <p className="text-sm text-white/70 font-bold truncate">
+                                        {image.model}
                                     </p>
                                 </div>
                                 <div className="space-y-1">
-                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">Created</span>
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                                        Quality
+                                    </span>
+                                    <p className="text-sm text-white/70 font-bold uppercase">
+                                        {resolution}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                                        Size
+                                    </span>
+                                    <p className="text-sm text-white/70 font-bold">
+                                        {currentAsset?.size
+                                            ? `${Math.round(currentAsset.size / 1024)} KB`
+                                            : 'N/A'}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <span className="text-[10px] text-white/30 uppercase font-black tracking-wider">
+                                        Created
+                                    </span>
                                     <p className="text-sm text-white/70 font-bold">
                                         {new Date(image.created_at).toLocaleDateString()}
                                     </p>
@@ -304,9 +334,15 @@ export function ImageDetailDialog({
                                 </button>
                                 <button
                                     onClick={() => onToggleLike(image.id)}
-                                    className={`w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${image.is_favorite ? 'text-red-500' : 'text-white'}`}
+                                    className={`w-11 h-11 rounded-2xl bg-white/5 hover:bg-white/10 flex items-center justify-center transition-all border border-white/10 ${
+                                        currentImage?.is_favorite ? 'text-red-500' : 'text-white'
+                                    }`}
                                 >
-                                    <Heart className={`w-4 h-4 ${image.is_favorite ? 'fill-current' : ''}`} />
+                                    <Heart
+                                        className={`w-4 h-4 ${
+                                            currentImage?.is_favorite ? 'fill-current' : ''
+                                        }`}
+                                    />
                                 </button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
@@ -314,18 +350,24 @@ export function ImageDetailDialog({
                                             <MoreHorizontal className="w-4 h-4" />
                                         </button>
                                     </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end" className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]">
+                                    <DropdownMenuContent
+                                        align="end"
+                                        className="bg-[#0A0A0A]/95 backdrop-blur-xl border-white/10 rounded-2xl p-2 min-w-[180px]"
+                                    >
                                         <DropdownMenuItem className="gap-3 py-3 rounded-lg cursor-pointer focus:bg-white/10">
-                                            <Share2 className="w-4 h-4" /> {language === 'ru' ? 'Поделиться' : 'Share'}
+                                            <Share2 className="w-4 h-4" />{' '}
+                                            {language === 'ru' ? 'Поделиться' : 'Share'}
                                         </DropdownMenuItem>
-                                        <DropdownMenuItem 
+                                        <DropdownMenuItem
                                             onClick={() => setIsAddToCollectionOpen(true)}
                                             className="gap-3 py-3 rounded-lg cursor-pointer focus:bg-white/10"
                                         >
-                                            <FolderPlus className="w-4 h-4" /> {language === 'ru' ? 'В папку' : 'Add to folder'}
+                                            <FolderPlus className="w-4 h-4" />{' '}
+                                            {language === 'ru' ? 'В папку' : 'Add to folder'}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem className="gap-3 py-3 rounded-lg text-red-500 focus:text-red-500 focus:bg-red-500/10">
-                                            <Trash2 className="w-4 h-4" /> {language === 'ru' ? 'Удалить' : 'Delete'}
+                                            <Trash2 className="w-4 h-4" />{' '}
+                                            {language === 'ru' ? 'Удалить' : 'Delete'}
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
