@@ -143,20 +143,20 @@ export function AudioGenerationPage() {
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col relative h-full bg-[#050505] overflow-hidden">
                     {/* Top Header with Search */}
-                    <header className="p-6 flex items-center justify-between gap-6 border-b border-white/5 sticky top-0 z-[60] bg-[#050505]/80 backdrop-blur-xl">
-                        <div className="flex items-center gap-4">
-                            <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors">
+                    <header className="p-6 flex items-center justify-between gap-6 sticky top-0 z-40 pointer-events-none">
+                        <div className="flex items-center gap-4 pointer-events-auto">
+                            <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-black/20 backdrop-blur-sm border border-white/5">
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
                         </div>
-                        <div className="flex-1 max-w-xl relative">
+                        <div className="flex-1 max-w-xl relative pointer-events-auto">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                             <input
                                 type="text"
                                 placeholder={language === 'ru' ? 'Поиск...' : 'Search...'}
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full h-11 bg-white/5 rounded-full pl-12 pr-4 outline-none text-sm font-mono border border-white/5 focus:border-[#6F00FF]/50 transition-all placeholder:text-white/20"
+                                className="w-full h-11 bg-black/20 backdrop-blur-sm rounded-full pl-12 pr-4 outline-none text-sm font-mono border border-white/5 focus:border-[#6F00FF]/50 transition-all placeholder:text-white/20"
                             />
                         </div>
                     </header>
