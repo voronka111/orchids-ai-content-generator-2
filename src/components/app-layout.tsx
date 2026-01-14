@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import {
     Home,
-    Plus,
+    Wrench,
     FolderOpen,
     User,
     Menu,
@@ -55,12 +55,12 @@ function NavItem({
             href={href}
             className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-colors ${
                 active
-                    ? 'text-white bg-white/10'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                    ? 'text-white'
+                    : 'text-muted-foreground hover:text-white'
             }`}
         >
-            <Icon className="w-5 h-5" />
-            <span className="text-xs">{label}</span>
+            <Icon className={`w-5 h-5 ${active ? 'text-white' : ''}`} />
+            <span className="text-[10px] font-medium">{label}</span>
         </Link>
     );
 }
@@ -147,9 +147,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     const [menuOpen, setMenuOpen] = useState(false);
 
     const navItems = [
-        { href: '/app', icon: Home, label: t('nav.create') },
         { href: '/app/library', icon: FolderOpen, label: t('nav.library') },
-        { href: '/app/profile', icon: User, label: t('nav.profile') },
+        { href: '/app', icon: Sparkles, label: language === 'ru' ? 'Сделать' : 'Create' },
+        { href: '/app/tools', icon: Wrench, label: t('nav.edit') },
     ];
 
     const createItems = [
@@ -349,11 +349,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                 items={createItems}
                                 pathname={pathname}
                             />
-                            <HeaderDropdown
-                                label={t('nav.edit')}
-                                items={editItems}
-                                pathname={pathname}
-                            />
+                            <Link
+                                href="/app/tools"
+                                className={`px-4 py-2 rounded-xl transition-colors text-sm font-medium ${
+                                    pathname === '/app/tools' || pathname.startsWith('/app/tools/')
+                                        ? 'bg-white/10 text-white'
+                                        : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                                }`}
+                            >
+                                {t('nav.edit')}
+                            </Link>
                             <Link
                                 href="/app/library"
                                 className={`px-4 py-2 rounded-xl transition-colors text-sm font-medium ${
@@ -405,15 +410,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 <div className="px-[14px] sm:px-6 py-6">{children}</div>
             </main>
 
-            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-t from-black/95 to-transparent backdrop-blur-xl border-t border-white/5">
+            <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 glass">
                 <div className="flex items-center justify-around h-16 px-2">
-                    {navItems.map((item) => (
+                    {navItems.map((item, index) => (
                         <NavItem
                             key={item.href}
                             href={item.href}
                             icon={item.icon}
                             label={item.label}
                             active={pathname === item.href}
+                            accent={index === 1}
                         />
                     ))}
                 </div>

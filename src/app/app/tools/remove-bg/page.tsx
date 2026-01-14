@@ -76,7 +76,7 @@ function RemoveBgToolContent() {
               <ArrowLeft className="w-5 h-5" />
             </Link>
               <div>
-                <h1 className="text-3xl font-black uppercase tracking-tight">
+                <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
                   {language === "ru" ? "Удалить фон" : "Remove BG"}
                 </h1>
                 <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">
@@ -90,13 +90,13 @@ function RemoveBgToolContent() {
             onDragLeave={() => setIsDragging(false)}
             onDrop={handleDrop}
             onClick={() => fileInputRef.current?.click()}
-            className={`aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
+            className={`aspect-[3/4] sm:aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
               isDragging 
-                ? "border-rose-500 bg-rose-500/5 shadow-[0_0_50px_rgba(244,63,94,0.1)]" 
+                ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
                 : "border-white/10 hover:border-white/20 bg-white/5"
             }`}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-rose-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
             
               <div className="relative z-10 flex flex-col items-center text-center px-6">
                 <div className="w-64 h-64 rounded-3xl overflow-hidden mb-8 group-hover:scale-105 transition-transform duration-500 border border-white/10 shadow-2xl relative">
@@ -106,7 +106,8 @@ function RemoveBgToolContent() {
                 {language === "ru" ? "Выберите изображение" : "Select an image"}
               </h3>
               <p className="text-sm text-white/40 font-medium">
-                {language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}
+                <span className="md:hidden">{language === "ru" ? "Выбрать из галереи" : "Choose from gallery"}</span>
+                <span className="hidden md:inline">{language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}</span>
               </p>
               <div className="mt-8 flex items-center gap-4 text-[10px] font-black uppercase tracking-widest opacity-30">
               <span>JPG</span>
@@ -142,118 +143,127 @@ function RemoveBgToolContent() {
           <ArrowLeft className="w-5 h-5" />
         </button>
 
-        <div className="relative max-w-full max-h-full rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')] bg-repeat">
-          <img 
-            src={result || uploadedImage} 
-            alt="Remove BG" 
-            className="w-full h-full object-contain"
-          />
-          {isProcessing && (
-            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
-              <div className="text-center">
-                <div className="relative">
-                  <Loader2 className="w-16 h-16 animate-spin text-rose-500 mx-auto mb-4" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <Eraser className="w-6 h-6 text-white" />
+          <div className="relative max-w-full max-h-full rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border border-white/5 bg-[url('https://www.transparenttextures.com/patterns/checkerboard.png')] bg-repeat">
+            <img 
+              src={result || uploadedImage} 
+              alt="Remove BG" 
+              className="w-full h-full object-contain"
+            />
+            {isProcessing && (
+              <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center">
+                <div className="text-center">
+                  <div className="relative">
+                    <Loader2 className="w-16 h-16 animate-spin text-[#6F00FF] mx-auto mb-4" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Eraser className="w-6 h-6 text-white" />
+                    </div>
                   </div>
+                  <p className="text-xs font-black uppercase tracking-widest text-[#6F00FF] animate-pulse">
+                    {language === "ru" ? "Удаляем фон..." : "Removing background..."}
+                  </p>
                 </div>
-                <p className="text-xs font-black uppercase tracking-widest text-rose-500 animate-pulse">
-                  {language === "ru" ? "Удаляем фон..." : "Removing background..."}
-                </p>
               </div>
-            </div>
-          )}
-          {result && !isProcessing && (
-            <div className="absolute bottom-6 right-6 flex gap-3">
-              <button 
-                onClick={() => {
-                  const link = document.createElement('a');
-                  link.href = result;
-                  link.download = 'no-bg-image.png';
-                  link.click();
-                }}
-                className="flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-rose-500 text-white font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
-              >
-                <Download className="w-4 h-4" />
-                {language === "ru" ? "Скачать результат" : "Download Result"}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Sidebar (1/4) */}
-      <div className="w-full md:w-[380px] border-l border-white/10 flex flex-col bg-[#0A0A0B] p-8">
-          <div className="flex-1 space-y-8">
-            <div>
-              <div className="flex items-center gap-3 text-white/30 mb-4">
-                <Sparkles className="w-4 h-4" />
-                <span className="text-[10px] font-black uppercase tracking-widest">{language === "ru" ? "Метод удаления" : "Removal Method"}</span>
-              </div>
-              
-              <div className="grid grid-cols-1 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                <button
-                  onClick={() => setMethod("auto")}
-                  className={`h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-3 ${
-                    method === "auto" 
-                      ? "bg-white text-black shadow-lg" 
-                      : "text-white/40 hover:text-white hover:bg-white/5"
-                  }`}
+            )}
+            {result && !isProcessing && (
+              <div className="absolute bottom-6 right-6 flex gap-3">
+                <button 
+                  onClick={() => {
+                    const link = document.createElement('a');
+                    link.href = result;
+                    link.download = 'no-bg-image.png';
+                    link.click();
+                  }}
+                  className="flex items-center gap-3 px-6 py-3.5 rounded-2xl bg-[#6F00FF] text-white font-black text-xs uppercase tracking-widest shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  <Wand2 className="w-4 h-4" />
-                  {language === "ru" ? "Умное удаление" : "AI Smart Removal"}
+                  <Download className="w-4 h-4" />
+                  {language === "ru" ? "Скачать результат" : "Download Result"}
                 </button>
               </div>
-            </div>
-
-          <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
-            <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">{language === "ru" ? "Характеристики" : "Properties"}</h4>
-            <div className="space-y-3">
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-white/40">{language === "ru" ? "Тип фона" : "Background"}</span>
-                <span>{language === "ru" ? "Прозрачный" : "Transparent"}</span>
-              </div>
-              <div className="flex justify-between text-xs font-bold">
-                <span className="text-white/40">{language === "ru" ? "Края" : "Edges"}</span>
-                <span>{language === "ru" ? "Сглаженные" : "Anti-aliased"}</span>
-              </div>
-            </div>
+            )}
           </div>
         </div>
 
-          <div className="pt-8">
-            <button
-              onClick={handleProcess}
-              disabled={isProcessing}
-              className="w-full py-5 rounded-xl bg-rose-500 text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(244,63,94,0.3)] disabled:opacity-50"
-            >
-              {isProcessing ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <>
-                  <Eraser className="w-4 h-4" />
-                  {language === "ru" ? "Удалить фон" : "Remove Background"}
-                  <div className="ml-2 flex items-center gap-1.5 text-[#FFD700] font-mono">
-                    <Zap className="w-3.5 h-3.5 fill-current" />
-                    <span className="text-xs font-bold">5</span>
-                  </div>
-                </>
-              )}
-            </button>
-          </div>
-      </div>
-    </div>
-  );
-}
+        {/* Sidebar (1/4) */}
+        <div className="w-full md:w-[380px] border-l border-white/10 flex flex-col bg-[#0A0A0B] p-8">
+            <div className="flex-1 space-y-8">
+              <div>
+                <div className="flex items-center gap-3 text-white/30 mb-4">
+                  <Sparkles className="w-4 h-4" />
+                  <span className="text-[10px] font-black uppercase tracking-widest">{language === "ru" ? "Модель" : "Model"}</span>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                  <button
+                    onClick={() => setMethod("topaz")}
+                    className={`h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-3 ${
+                      method === "topaz" 
+                        ? "bg-white text-black shadow-lg" 
+                        : "text-white/40 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    Topaz
+                  </button>
+                  <button
+                    onClick={() => setMethod("standard")}
+                    className={`h-11 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-3 ${
+                      method === "standard" 
+                        ? "bg-white text-black shadow-lg" 
+                        : "text-white/40 hover:text-white hover:bg-white/5"
+                    }`}
+                  >
+                    Standard
+                  </button>
+                </div>
+              </div>
 
-export default function RemoveBgPage() {
-  return (
-    <Suspense fallback={
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-rose-500" />
+            <div className="p-6 rounded-3xl bg-white/5 border border-white/5 space-y-4">
+              <h4 className="text-[10px] font-black uppercase tracking-widest text-white/30">{language === "ru" ? "Характеристики" : "Properties"}</h4>
+              <div className="space-y-3">
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-white/40">{language === "ru" ? "Тип фона" : "Background"}</span>
+                  <span>{language === "ru" ? "Прозрачный" : "Transparent"}</span>
+                </div>
+                <div className="flex justify-between text-xs font-bold">
+                  <span className="text-white/40">{language === "ru" ? "Края" : "Edges"}</span>
+                  <span>{language === "ru" ? "Сглаженные" : "Anti-aliased"}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+            <div className="pt-8">
+              <button
+                onClick={handleProcess}
+                disabled={isProcessing}
+                className="w-full py-5 rounded-xl bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_40px_rgba(111,0,255,0.3)] disabled:opacity-50"
+              >
+                {isProcessing ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Eraser className="w-4 h-4" />
+                    {language === "ru" ? "Удалить фон" : "Remove Background"}
+                    <div className="ml-2 flex items-center gap-1.5 text-[#FFD700] font-mono">
+                      <Zap className="w-3.5 h-3.5 fill-current" />
+                      <span className="text-xs font-bold">5</span>
+                    </div>
+                  </>
+                )}
+              </button>
+            </div>
+        </div>
       </div>
-    }>
-      <RemoveBgToolContent />
-    </Suspense>
-  );
-}
+    );
+  }
+
+  export default function RemoveBgPage() {
+    return (
+      <Suspense fallback={
+        <div className="h-screen flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-[#6F00FF]" />
+        </div>
+      }>
+        <RemoveBgToolContent />
+      </Suspense>
+    );
+  }
