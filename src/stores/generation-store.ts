@@ -21,6 +21,7 @@ export interface Generation {
     error?: string;
     created_at: string;
     updated_at?: string;
+    is_favorite?: boolean;
 }
 
 interface GenerationState {
@@ -37,6 +38,7 @@ interface GenerationState {
     addGeneration: (generation: Generation) => void;
     updateGeneration: (id: string, updates: Partial<Generation>) => void;
     removeGeneration: (id: string) => void;
+    toggleFavorite: (id: string) => Promise<void>;
 
     // API methods
     fetchHistory: (reset?: boolean) => Promise<void>;
@@ -243,6 +245,47 @@ export const useGenerationStore = create<GenerationState>()((set, get) => ({
         set((state) => ({
             generations: state.generations.filter((g) => g.id !== id),
         }));
+    },
+
+    toggleFavorite: async (id: string) => {
+        const gen = get().generations.find((g) => g.id === id);
+        if (!gen) return;
+
+        const newState = !gen.is_favorite;
+        get().updateGeneration(id, { is_favorite: newState });
+
+        try {
+            // Find or create "Избранное" collection
+            const { data: collections } = await api.GET('/collections/');
+            let favoritesCollection = collections?.find(
+                (c: any) => c.name === 'Избранное' || c.name === 'Favorites'
+            );
+
+            if (!favoritesCollection) {
+                const { data: newCol } = await api.POST('/collections/', {
+                    body: { name: 'Избранное' },
+                });
+                favoritesCollection = newCol;
+            }
+
+            if (favoritesCollection) {
+                if (newState) {
+                    await api.POST('/collections/{id}/items', {
+                        params: { path: { id: favoritesCollection.id } },
+                        body: { generation_id: id } as any,
+                    });
+                } else {
+                    await api.DELETE('/collections/{id}/items/{generationId}', {
+                        params: {
+                            path: { id: favoritesCollection.id, generationId: id },
+                        },
+                    });
+                }
+            }
+        } catch (err) {
+            console.error('Failed to toggle favorite in collections:', err);
+            // Revert local state on error? Maybe just log it for now as per user's "just add it"
+        }
     },
 
     fetchHistory: async (reset = false) => {

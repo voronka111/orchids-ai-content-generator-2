@@ -15,6 +15,8 @@ import {
     ChevronDown,
     Play,
     Wand2,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden';
@@ -27,8 +29,7 @@ import {
 import { useLanguage } from '@/lib/language-context';
 import { Generation } from '@/stores/generation-store';
 import { DiamondIcon } from '@/components/ui/diamond-icon';
-import { toast } from 'sonner';
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 
 interface ImageDetailDialogProps {
     image: Generation | null;
@@ -37,6 +38,8 @@ interface ImageDetailDialogProps {
     resolution: string;
     onRemix: (image: Generation) => void;
     onToggleLike: (id: string) => void;
+    generations?: Generation[];
+    onSelectImage?: (image: Generation) => void;
 }
 
 export function ImageDetailDialog({
@@ -46,24 +49,62 @@ export function ImageDetailDialog({
     resolution,
     onRemix,
     onToggleLike,
+    generations = [],
+    onSelectImage,
 }: ImageDetailDialogProps) {
     const { language } = useLanguage();
     const router = useRouter();
     const [showMoreInfo, setShowMoreInfo] = useState(true);
+    const [selectedAssetIndex, setSelectedAssetIndex] = useState(0);
+
+    // Reset asset index when image changes
+    useEffect(() => {
+        setSelectedAssetIndex(0);
+    }, [image?.id]);
+
+    const handlePrevious = useCallback(() => {
+        if (!image || !onSelectImage || generations.length === 0) return;
+        const currentIndex = generations.findIndex((g) => g.id === image.id);
+        if (currentIndex > 0) {
+            onSelectImage(generations[currentIndex - 1]);
+        }
+    }, [image, generations, onSelectImage]);
+
+    const handleNext = useCallback(() => {
+        if (!image || !onSelectImage || generations.length === 0) return;
+        const currentIndex = generations.findIndex((g) => g.id === image.id);
+        if (currentIndex < generations.length - 1) {
+            onSelectImage(generations[currentIndex + 1]);
+        }
+    }, [image, generations, onSelectImage]);
+
+    // Keyboard navigation
+    useEffect(() => {
+        if (!open) return;
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'ArrowLeft') handlePrevious();
+            if (e.key === 'ArrowRight') handleNext();
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [open, handlePrevious, handleNext]);
 
     if (!image) return null;
 
+    const currentAsset = image.result_assets?.[selectedAssetIndex] || image.result_assets?.[0];
+
     const handleDownload = () => {
         const link = document.createElement('a');
-        link.href = image.result_assets?.[0]?.url || '';
+        link.href = currentAsset?.url || '';
         link.download = 'generated-image.png';
         link.click();
-        toast.success(language === 'ru' ? 'Загрузка начата' : 'Download started');
     };
 
-    const handleCopyPrompt = () => {
+    const handleCopyPrompt = (e: React.MouseEvent) => {
+        e.preventDefault();
         navigator.clipboard.writeText(image.prompt);
-        toast.success(language === 'ru' ? 'Скопировано' : 'Copied');
     };
 
     const handleRemix = () => {
@@ -72,16 +113,14 @@ export function ImageDetailDialog({
     };
 
     const handleAnimate = () => {
-        router.push(
-            `/app/create/video?image=${encodeURIComponent(image.result_assets?.[0]?.url || '')}`
-        );
+        router.push(`/app/create/video?image=${encodeURIComponent(currentAsset?.url || '')}`);
     };
 
     const handleUpscale = () => {
-        router.push(
-            `/app/tools/enhance?image=${encodeURIComponent(image.result_assets?.[0]?.url || '')}`
-        );
+        router.push(`/app/tools/enhance?image=${encodeURIComponent(currentAsset?.url || '')}`);
     };
+
+    const hasMultipleAssets = (image.result_assets?.length || 0) > 1;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -95,7 +134,7 @@ export function ImageDetailDialog({
                 <div className="flex h-full w-full">
                     {/* Image Preview */}
                     <div
-                        className="flex-1 bg-black/80 backdrop-blur-xl flex items-center justify-center p-8 relative cursor-pointer"
+                        className="flex-1 bg-black/80 backdrop-blur-xl flex flex-col items-center justify-center p-8 relative cursor-pointer group/preview"
                         onClick={() => onOpenChange(false)}
                     >
                         <button
@@ -108,12 +147,67 @@ export function ImageDetailDialog({
                             <X className="w-5 h-5 text-white" />
                         </button>
 
-                        <img
-                            src={image.result_assets?.[0]?.url || ''}
-                            alt=""
-                            className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl"
-                            onClick={(e) => e.stopPropagation()}
-                        />
+                        {/* Navigation Arrows */}
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-8 pointer-events-none">
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handlePrevious();
+                                }}
+                                className="p-4 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all pointer-events-auto opacity-0 group-hover/preview:opacity-100 disabled:opacity-0"
+                                disabled={generations.findIndex((g) => g.id === image.id) === 0}
+                            >
+                                <ChevronLeft className="w-6 h-6" />
+                            </button>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleNext();
+                                }}
+                                className="p-4 rounded-full bg-black/40 backdrop-blur-md text-white border border-white/10 hover:bg-white/20 transition-all pointer-events-auto opacity-0 group-hover/preview:opacity-100 disabled:opacity-0"
+                                disabled={
+                                    generations.findIndex((g) => g.id === image.id) ===
+                                    generations.length - 1
+                                }
+                            >
+                                <ChevronRight className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="relative max-w-full max-h-[85%] flex flex-col items-center justify-center">
+                            <img
+                                src={currentAsset?.url || ''}
+                                alt=""
+                                className="max-w-full max-h-full w-auto h-auto object-contain rounded-2xl shadow-2xl"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+
+                            {/* Variations Thumbnails - Overlay Style */}
+                            {hasMultipleAssets && (
+                                <div
+                                    className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 p-2 rounded-2xl bg-black/20 backdrop-blur-md border border-white/10 opacity-40 hover:opacity-100 transition-opacity z-10 no-scrollbar overflow-x-auto max-w-[90%]"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    {image.result_assets?.map((asset, index) => (
+                                        <button
+                                            key={index}
+                                            onClick={() => setSelectedAssetIndex(index)}
+                                            className={`relative w-14 h-14 rounded-xl overflow-hidden flex-shrink-0 transition-all border-2 ${
+                                                selectedAssetIndex === index
+                                                    ? 'border-[#6F00FF] scale-105 shadow-lg shadow-[#6F00FF]/20'
+                                                    : 'border-transparent hover:border-white/40'
+                                            }`}
+                                        >
+                                            <img
+                                                src={asset.url}
+                                                alt=""
+                                                className="w-full h-full object-cover"
+                                            />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Details Panel */}
@@ -176,7 +270,7 @@ export function ImageDetailDialog({
                                             <div className="flex items-center gap-1">
                                                 <div className="w-9 h-9 rounded-xl overflow-hidden border border-white/10 shadow-lg">
                                                     <img
-                                                        src={image.result_assets?.[0]?.url || ''}
+                                                        src={currentAsset?.url || ''}
                                                         alt=""
                                                         className="w-full h-full object-cover"
                                                     />
@@ -199,7 +293,9 @@ export function ImageDetailDialog({
                                                 {language === 'ru' ? 'Размер' : 'Size'}
                                             </span>
                                             <span className="text-sm font-bold text-white/90">
-                                                2112x2016
+                                                {currentAsset?.size
+                                                    ? `${Math.round(currentAsset.size / 1024)} KB`
+                                                    : 'N/A'}
                                             </span>
                                         </div>
                                         <div className="flex items-center justify-between">
@@ -259,9 +355,17 @@ export function ImageDetailDialog({
                                 </button>
                                 <button
                                     onClick={() => onToggleLike(image.id)}
-                                    className="p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 group active:scale-90"
+                                    className={`p-3.5 rounded-2xl bg-white/5 hover:bg-white/10 text-white transition-all border border-white/5 group active:scale-90 ${
+                                        image.is_favorite ? 'text-red-500' : ''
+                                    }`}
                                 >
-                                    <Heart className="w-5 h-5 transition-colors text-white/40 group-hover:text-white" />
+                                    <Heart
+                                        className={`w-5 h-5 transition-colors ${
+                                            image.is_favorite
+                                                ? 'fill-current text-white'
+                                                : 'text-white/40 group-hover:text-white'
+                                        }`}
+                                    />
                                 </button>
                                 <DropdownMenu>
                                     <DropdownMenuTrigger asChild>

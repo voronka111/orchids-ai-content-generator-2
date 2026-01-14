@@ -24,7 +24,13 @@ export function VideoGenerationPage() {
 
     // Stores
     const { videoModels, fetchModels } = useModelsStore();
-    const { generations, generateVideoGeneric, uploadImage, fetchHistory } = useGenerationStore();
+    const {
+        generations,
+        generateVideoGeneric,
+        uploadImage,
+        fetchHistory,
+        toggleFavorite,
+    } = useGenerationStore();
 
     // Local state
     const [prompt, setPrompt] = useState('');
@@ -110,20 +116,11 @@ export function VideoGenerationPage() {
         [generations]
     );
 
-    const toggleLike = (id: string) => {
-        toast.info(language === 'ru' ? 'В разработке' : 'Coming soon');
-    };
-
     const handleRemix = (gen: Generation) => {
         setPrompt(gen.prompt);
         const foundModel = videoModels.find((m) => m.id === gen.model || m.name === gen.model);
         if (foundModel) setModel(foundModel.id);
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        toast.success(
-            language === 'ru'
-                ? 'Параметры скопированы в панель генерации'
-                : 'Parameters copied to generation bar'
-        );
     };
 
     const handleGenerate = async () => {
@@ -168,33 +165,37 @@ export function VideoGenerationPage() {
     };
 
     return (
-        <div className="max-w-full mx-auto pb-40 relative overflow-x-hidden">
+        <div className="max-w-full mx-auto pb-40 relative">
             <BackgroundEllipses />
 
-            <PageHeader
-                title={t('type.video')}
-                subtitle={t('type.video.sub')}
-                rightContent={
-                    <GridSizeSlider value={gridSize} onChange={setGridSize} min={250} max={800} />
-                }
-            />
+            <div className="sticky top-0 z-[60] bg-[#030303]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4">
+                <PageHeader
+                    title={t('type.video')}
+                    subtitle={t('type.video.sub')}
+                    rightContent={
+                        <GridSizeSlider value={gridSize} onChange={setGridSize} min={250} max={800} />
+                    }
+                />
+            </div>
 
-            <div
-                className="grid gap-4 sm:gap-6"
-                style={{
-                    gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
-                }}
-            >
-                {isGenerating && <GeneratingPlaceholder aspectRatio="video" />}
-                {videoGenerations.map((gen) => (
-                    <VideoCard
-                        key={gen.id}
-                        generation={gen}
-                        onClick={() => setSelectedVideo(gen)}
-                        onRemix={() => handleRemix(gen)}
-                        onToggleLike={() => toggleLike(gen.id)}
-                    />
-                ))}
+            <div className="px-6 mt-8">
+                <div
+                    className="grid gap-4 sm:gap-6"
+                    style={{
+                        gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
+                    }}
+                >
+                    {isGenerating && <GeneratingPlaceholder aspectRatio="video" />}
+                    {videoGenerations.map((gen) => (
+                        <VideoCard
+                            key={gen.id}
+                            generation={gen}
+                            onClick={() => setSelectedVideo(gen)}
+                            onRemix={() => handleRemix(gen)}
+                            onToggleLike={() => toggleFavorite(gen.id)}
+                        />
+                    ))}
+                </div>
             </div>
 
             <GenerationBar
@@ -235,7 +236,9 @@ export function VideoGenerationPage() {
                 aspectRatio={aspectRatio}
                 duration={duration}
                 onRemix={handleRemix}
-                onToggleLike={toggleLike}
+                onToggleLike={toggleFavorite}
+                videos={videoGenerations}
+                onSelectVideo={setSelectedVideo}
             />
         </div>
     );

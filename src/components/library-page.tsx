@@ -14,33 +14,79 @@ import {
     type CategoryType,
     type FolderType,
 } from '@/components/library';
+import { ImageDetailDialog } from '@/components/dialogs/ImageDetailDialog';
+import { VideoDetailDialog } from '@/components/dialogs/VideoDetailDialog';
+import { useModelsStore } from '@/stores/models-store';
+import { AudioTrackCard, AudioPlayerFooter } from '@/components/audio';
+import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 
 export function LibraryPage() {
     const { language } = useLanguage();
 
     // Store
-    const { generations } = useGenerationStore();
+    const { generations, toggleFavorite } = useGenerationStore();
+    const { videoModels } = useModelsStore();
 
     // Local state
     const [activeCategory, setActiveCategory] = useState<CategoryType>('all');
     const [gridSize, setGridSize] = useState([300]);
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
+    const [selectedGeneration, setSelectedGeneration] = useState<Generation | null>(null);
     const [folders, setFolders] = useState<FolderType[]>([
         { id: '1', name: language === 'ru' ? 'Проект А' : 'Project A', count: 12 },
         { id: '2', name: language === 'ru' ? 'Для соцсетей' : 'For Socials', count: 5 },
     ]);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
+    // Audio player hook
+    const audioGenerations = useMemo(
+        () => generations.filter((g) => g.type === 'audio'),
+        [generations]
+    );
+
+    const {
+        audioRef,
+        currentTrack,
+        isPlaying,
+        setIsPlaying,
+        audioProgress,
+        audioDuration,
+        volume,
+        playbackSpeed,
+        setPlaybackSpeed,
+        getAudioTracks,
+        playTrack,
+        togglePlayPause,
+        handleTimeUpdate,
+        handleLoadedMetadata,
+        handleSeek,
+        handleVolumeChange,
+        playNextTrack,
+        playPrevTrack,
+        formatDuration,
+    } = useAudioPlayer(audioGenerations);
+
     const filteredGenerations = useMemo(() => {
         return generations.filter((g) => {
             if (activeCategory === 'all') return true;
-            if (activeCategory === 'favorites') return false;
+            if (activeCategory === 'favorites') return g.is_favorite;
             if (activeCategory === 'image') return g.type === 'image';
             if (activeCategory === 'video') return g.type === 'video';
             if (activeCategory === 'audio') return g.type === 'audio';
             return false;
         });
     }, [generations, activeCategory]);
+
+    const counts = useMemo(
+        () => ({
+            all: generations.length,
+            favorites: generations.filter((g) => g.is_favorite).length,
+            image: generations.filter((g) => g.type === 'image').length,
+            video: generations.filter((g) => g.type === 'video').length,
+            audio: generations.filter((g) => g.type === 'audio').length,
+        }),
+        [generations]
+    );
 
     const groupedGenerations = useMemo(() => {
         const groups: { [key: string]: Generation[] } = {};
@@ -64,11 +110,23 @@ export function LibraryPage() {
             groups[label].push(gen);
         });
         return Object.entries(groups).sort((a, b) => {
-            if (a[0] === (language === 'ru' ? 'Сегодня' : 'Today')) return -1;
-            if (b[0] === (language === 'ru' ? 'Сегодня' : 'Today')) return 1;
-            return 0;
+            // Sort by actual date
+            const dateA = groupedGenerations_getDateFromLabel(a[0], language);
+            const dateB = groupedGenerations_getDateFromLabel(b[0], language);
+            return dateB.getTime() - dateA.getTime();
         });
     }, [filteredGenerations, language]);
+
+    // Helper to get date from label for sorting
+    function groupedGenerations_getDateFromLabel(label: string, lang: string) {
+        if (label === (lang === 'ru' ? 'Сегодня' : 'Today')) return new Date();
+        if (label === (lang === 'ru' ? 'Вчера' : 'Yesterday')) {
+            const d = new Date();
+            d.setDate(d.getDate() - 1);
+            return d;
+        }
+        return new Date(label);
+    }
 
     const toggleSelect = (id: string) => {
         setSelectedIds((prev) =>
@@ -86,14 +144,6 @@ export function LibraryPage() {
                 ? `Новая папка ${folders.length + 1}`
                 : `New Folder ${folders.length + 1}`;
         setFolders([...folders, { id: Date.now().toString(), name, count: 0 }]);
-    };
-
-    const counts = {
-        all: generations.length,
-        favorites: 0,
-        image: generations.filter((g) => g.type === 'image').length,
-        video: generations.filter((g) => g.type === 'video').length,
-        audio: generations.filter((g) => g.type === 'audio').length,
     };
 
     const getCategoryLabel = () => {
@@ -163,19 +213,45 @@ export function LibraryPage() {
                                     </h3>
 
                                     <div
-                                        className="grid gap-4 sm:gap-6"
-                                        style={{
+                                        className={activeCategory === 'audio' ? 'flex flex-col gap-4 max-w-5xl' : 'grid gap-4 sm:gap-6'}
+                                        style={activeCategory === 'audio' ? {} : {
                                             gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
                                         }}
                                     >
-                                        {items.map((gen) => (
-                                            <MediaCard
-                                                key={gen.id}
-                                                generation={gen}
-                                                isSelected={selectedIds.includes(gen.id)}
-                                                onToggleSelect={() => toggleSelect(gen.id)}
-                                            />
-                                        ))}
+                                        {items.map((gen) => {
+                                            if (activeCategory === 'audio') {
+                                                const tracks = getAudioTracks(gen);
+                                                return tracks.map((track, trackIdx) => {
+                                                    const isCurrentTrack =
+                                                        currentTrack?.genId === gen.id &&
+                                                        currentTrack?.trackIndex === trackIdx;
+
+                                                    return (
+                                                        <AudioTrackCard
+                                                            key={`${gen.id}-track-${trackIdx}`}
+                                                            generation={gen}
+                                                            track={track}
+                                                            trackIndex={trackIdx}
+                                                            totalTracks={tracks.length}
+                                                            isCurrentTrack={isCurrentTrack}
+                                                            isPlaying={isCurrentTrack && isPlaying}
+                                                            onClick={() => playTrack(gen, trackIdx)}
+                                                            onDownload={() => window.open(track.url, '_blank')}
+                                                        />
+                                                    );
+                                                });
+                                            }
+
+                                            return (
+                                                <MediaCard
+                                                    key={gen.id}
+                                                    generation={gen}
+                                                    isSelected={selectedIds.includes(gen.id)}
+                                                    onToggleSelect={() => toggleSelect(gen.id)}
+                                                    onClick={() => setSelectedGeneration(gen)}
+                                                />
+                                            );
+                                        })}
                                     </div>
                                 </div>
                             ))}
@@ -210,6 +286,60 @@ export function LibraryPage() {
 
             {/* Upgrade Modal */}
             <UpgradeModal open={isUpgradeModalOpen} onOpenChange={setIsUpgradeModalOpen} />
+
+            {/* Preview Dialogs */}
+            <ImageDetailDialog
+                image={selectedGeneration?.type === 'image' ? selectedGeneration : null}
+                open={selectedGeneration?.type === 'image'}
+                onOpenChange={(open) => !open && setSelectedGeneration(null)}
+                resolution="1K"
+                onRemix={() => {}}
+                onToggleLike={toggleFavorite}
+                generations={filteredGenerations.filter((g) => g.type === 'image')}
+                onSelectImage={setSelectedGeneration}
+            />
+
+            <VideoDetailDialog
+                video={selectedGeneration?.type === 'video' ? selectedGeneration : null}
+                open={selectedGeneration?.type === 'video'}
+                onOpenChange={(open) => !open && setSelectedGeneration(null)}
+                models={videoModels}
+                aspectRatio="16:9"
+                duration="5"
+                onRemix={() => {}}
+                onToggleLike={toggleFavorite}
+                videos={filteredGenerations.filter((g) => g.type === 'video')}
+                onSelectVideo={setSelectedGeneration}
+            />
+
+            {/* Hidden Audio Element */}
+            <audio
+                ref={audioRef}
+                onTimeUpdate={handleTimeUpdate}
+                onLoadedMetadata={handleLoadedMetadata}
+                onEnded={playNextTrack}
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
+            />
+
+            {/* Bottom Audio Player */}
+            {activeCategory === 'audio' && (
+                <AudioPlayerFooter
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    audioProgress={audioProgress}
+                    audioDuration={audioDuration}
+                    volume={volume}
+                    playbackSpeed={playbackSpeed}
+                    onTogglePlayPause={togglePlayPause}
+                    onSeek={handleSeek}
+                    onVolumeChange={handleVolumeChange}
+                    onPlaybackSpeedChange={setPlaybackSpeed}
+                    onPlayNext={playNextTrack}
+                    onPlayPrev={playPrevTrack}
+                    formatDuration={formatDuration}
+                />
+            )}
         </div>
     );
 }

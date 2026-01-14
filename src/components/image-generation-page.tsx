@@ -26,7 +26,13 @@ export function ImageGenerationPage() {
 
     // Stores
     const { imageModels, fetchModels } = useModelsStore();
-    const { generations, generateImageGeneric, uploadImage, fetchHistory } = useGenerationStore();
+    const {
+        generations,
+        generateImageGeneric,
+        uploadImage,
+        fetchHistory,
+        toggleFavorite,
+    } = useGenerationStore();
 
     // Local state
     const [prompt, setPrompt] = useState('');
@@ -115,20 +121,11 @@ export function ImageGenerationPage() {
         [generations]
     );
 
-    const toggleLike = (id: string) => {
-        toast.info(language === 'ru' ? 'В разработке' : 'Coming soon');
-    };
-
     const handleRemix = (gen: Generation) => {
         setPrompt(gen.prompt);
         const foundModel = imageModels.find((m) => m.id === gen.model || m.name === gen.model);
         if (foundModel) setModel(foundModel.id);
         window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        toast.success(
-            language === 'ru'
-                ? 'Параметры скопированы в панель генерации'
-                : 'Parameters copied to generation bar'
-        );
     };
 
     const handleGenerate = async () => {
@@ -171,10 +168,10 @@ export function ImageGenerationPage() {
     };
 
     return (
-        <div className="max-w-full mx-auto pb-40 relative overflow-x-hidden">
+        <div className="max-w-full mx-auto pb-40 relative">
             <BackgroundEllipses />
 
-            <div className="flex items-center justify-between gap-4 mb-8 relative z-10">
+            <div className="sticky top-0 z-[60] bg-[#030303]/80 backdrop-blur-xl border-b border-white/5 px-6 py-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
                     <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors">
                         <ArrowLeft className="w-5 h-5" />
@@ -184,22 +181,24 @@ export function ImageGenerationPage() {
                 <GridSizeSlider value={gridSize} onChange={setGridSize} min={200} max={800} />
             </div>
 
-            <div
-                className="grid gap-4 sm:gap-6"
-                style={{
-                    gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
-                }}
-            >
-                {isGenerating && <GeneratingPlaceholder aspectRatio="square" />}
-                {imageGenerations.map((gen) => (
-                    <ImageCard
-                        key={gen.id}
-                        generation={gen}
-                        onClick={() => setSelectedImage(gen)}
-                        onRemix={() => handleRemix(gen)}
-                        onToggleLike={() => toggleLike(gen.id)}
-                    />
-                ))}
+            <div className="px-6 mt-8">
+                <div
+                    className="grid gap-4 sm:gap-6"
+                    style={{
+                        gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
+                    }}
+                >
+                    {isGenerating && <GeneratingPlaceholder aspectRatio="square" />}
+                    {imageGenerations.map((gen) => (
+                        <ImageCard
+                            key={gen.id}
+                            generation={gen}
+                            onClick={() => setSelectedImage(gen)}
+                            onRemix={() => handleRemix(gen)}
+                            onToggleLike={() => toggleFavorite(gen.id)}
+                        />
+                    ))}
+                </div>
             </div>
 
             <ImageGenerationBar
@@ -234,7 +233,9 @@ export function ImageGenerationPage() {
                 onOpenChange={(open) => !open && setSelectedImage(null)}
                 resolution={resolution}
                 onRemix={handleRemix}
-                onToggleLike={toggleLike}
+                onToggleLike={toggleFavorite}
+                generations={imageGenerations}
+                onSelectImage={setSelectedImage}
             />
         </div>
     );

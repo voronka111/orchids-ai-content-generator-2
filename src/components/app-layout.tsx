@@ -392,19 +392,16 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                             {t('nav.library')}
                         </Link>
 
-                        <div className="hidden sm:flex items-center gap-1.5">
-                            <Zap className="w-4 h-4 fill-[#FFDC74] text-[#FFDC74]" />
-                            <span className="text-sm font-bold text-[#FFDC74] font-mono">
-                                {creditBalance}
-                            </span>
-                        </div>
-
                         <div className="flex items-center gap-3">
-                            <Link
-                                href="/app/profile"
-                                className="flex items-center gap-2.5 transition-all group"
-                            >
-                                <div className="w-8 h-8 rounded-full overflow-hidden shadow-lg group-hover:scale-105 transition-transform border border-white/10">
+                            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10">
+                                <Zap className="w-4 h-4 text-[#FFDC74] fill-[#FFDC74]" />
+                                <span className="text-sm font-bold text-[#FFDC74] font-mono">
+                                    {creditBalance}
+                                </span>
+                            </div>
+
+                            <Link href="/app/profile">
+                                <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-colors overflow-hidden">
                                     {user?.avatar_url ? (
                                         <img
                                             src={user.avatar_url}
@@ -412,9 +409,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <div className="w-full h-full bg-[#6F00FF] flex items-center justify-center text-white font-bold text-xs">
-                                            {user?.display_name?.[0] || 'U'}
-                                        </div>
+                                        <User className="w-5 h-5 text-muted-foreground" />
                                     )}
                                 </div>
                             </Link>

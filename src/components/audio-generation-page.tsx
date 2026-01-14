@@ -3,7 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 
 import { useLanguage } from '@/lib/language-context';
@@ -142,7 +143,12 @@ export function AudioGenerationPage() {
                 {/* Main Content Area */}
                 <main className="flex-1 flex flex-col relative h-full bg-[#050505] overflow-hidden">
                     {/* Top Header with Search */}
-                    <header className="p-6 flex items-center justify-between gap-6 border-b border-white/5">
+                    <header className="p-6 flex items-center justify-between gap-6 border-b border-white/5 sticky top-0 z-[60] bg-[#050505]/80 backdrop-blur-xl">
+                        <div className="flex items-center gap-4">
+                            <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors">
+                                <ArrowLeft className="w-5 h-5" />
+                            </Link>
+                        </div>
                         <div className="flex-1 max-w-xl relative">
                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                             <input
