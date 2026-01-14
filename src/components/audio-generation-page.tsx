@@ -148,7 +148,7 @@ export function AudioGenerationPage() {
                             <Link href="/app" className="p-2 rounded-xl hover:bg-white/10 transition-colors bg-black/20 backdrop-blur-sm border border-white/5">
                                 <ArrowLeft className="w-5 h-5" />
                             </Link>
-                            <h1 className="text-3xl font-black uppercase tracking-tight">
+                            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
                                 {language === 'ru' ? 'АУДИО' : 'AUDIO'}
                             </h1>
                         </div>
@@ -221,7 +221,12 @@ export function AudioGenerationPage() {
                                                 isCurrentTrack={isCurrentTrack}
                                                 isPlaying={isCurrentTrack && isPlaying}
                                                 onClick={() => playTrack(gen, trackIdx)}
-                                                onDownload={() => window.open(track.url, '_blank')}
+                                                onDownload={() => {
+                                                    const link = document.createElement('a');
+                                                    link.href = track.url;
+                                                    link.download = `audio-${gen.id}.mp3`;
+                                                    link.click();
+                                                }}
                                             />
                                         );
                                     });

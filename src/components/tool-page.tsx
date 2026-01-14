@@ -48,42 +48,43 @@ export function ToolPage({ title, description, icon, gradient }: ToolPageProps) 
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-12">
-      <div className="flex items-center gap-4 mb-12">
-        <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight">{title}</h1>
-          <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">{description}</p>
-        </div>
-      </div>
-
-      {!uploadedImage ? (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-          onDragLeave={() => setIsDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileInputRef.current?.click()}
-          className={`aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
-            isDragging 
-              ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
-              : "border-white/10 hover:border-white/20 bg-white/5"
-          }`}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-          
-          <div className="relative z-10 flex flex-col items-center text-center px-6">
-            <div className={`w-32 h-32 rounded-3xl ${gradient} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-white/10 shadow-2xl`}>
-              {icon}
-            </div>
-            <h3 className="text-xl font-black uppercase tracking-tight mb-2">
-              {language === "ru" ? "Выберите изображение" : "Select an image"}
-            </h3>
-            <p className="text-sm text-white/40 font-medium">
-              {language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}
-            </p>
+        <div className="flex items-center gap-4 mb-12">
+          <Link href="/app" className="p-2.5 rounded-2xl hover:bg-white/10 transition-colors border border-white/5">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">{title}</h1>
+            <p className="text-[10px] text-muted-foreground font-black uppercase tracking-[0.2em] opacity-40">{description}</p>
           </div>
         </div>
+
+        {!uploadedImage ? (
+          <div
+            onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`aspect-[3/4] sm:aspect-square md:aspect-[4/3] rounded-[40px] border-2 border-dashed transition-all flex flex-col items-center justify-center cursor-pointer group relative overflow-hidden ${
+              isDragging 
+                ? "border-[#6F00FF] bg-[#6F00FF]/5 shadow-[0_0_50px_rgba(111,0,255,0.1)]" 
+                : "border-white/10 hover:border-white/20 bg-white/5"
+            }`}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-[#6F00FF]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+            
+            <div className="relative z-10 flex flex-col items-center text-center px-6">
+              <div className={`w-32 h-32 rounded-3xl ${gradient} flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500 border border-white/10 shadow-2xl`}>
+                {icon}
+              </div>
+              <h3 className="text-xl font-black uppercase tracking-tight mb-2">
+                {language === "ru" ? "Выберите изображение" : "Select an image"}
+              </h3>
+              <p className="text-sm text-white/40 font-medium">
+                <span className="md:hidden">{language === "ru" ? "Выбрать из галереи" : "Choose from gallery"}</span>
+                <span className="hidden md:inline">{language === "ru" ? "Перетащите файл сюда или нажмите для загрузки" : "Drag and drop your file here or click to upload"}</span>
+              </p>
+            </div>
+          </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-6">
           <div

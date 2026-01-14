@@ -1038,6 +1038,26 @@ export function LandingPage() {
                             transition={{ delay: 0.2 }}
                             className="max-w-3xl mx-auto mb-20"
                         >
+                            <div className="flex items-center justify-center gap-3 mb-6">
+                                <Link 
+                                    href="/app/create/image" 
+                                    className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all hover:scale-105 active:scale-95 shadow-xl"
+                                >
+                                    {language === 'ru' ? 'Изображение' : 'Image'}
+                                </Link>
+                                <Link 
+                                    href="/app/create/video" 
+                                    className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all hover:scale-105 active:scale-95 shadow-xl"
+                                >
+                                    {language === 'ru' ? 'Видео' : 'Video'}
+                                </Link>
+                                <Link 
+                                    href="/app/create/audio" 
+                                    className="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white hover:bg-white/10 transition-all hover:scale-105 active:scale-95 shadow-xl"
+                                >
+                                    {language === 'ru' ? 'Аудио' : 'Audio'}
+                                </Link>
+                            </div>
                             <div className="relative group">
                                 <div className="absolute -inset-4 bg-[#6F00FF]/10 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
                                 <div className="relative bg-white/[0.03] border border-white/10 rounded-2xl p-2 backdrop-blur-sm">

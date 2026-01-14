@@ -3,12 +3,17 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
-import { Folder, Maximize2, Minimize2, ChevronLeft, MoreHorizontal, Pencil, Trash2, Filter, Plus } from 'lucide-react';
+import { Folder, Maximize2, Minimize2, ChevronLeft, MoreHorizontal, Pencil, Trash2, Filter, Plus, Heart, Sparkles, Image, Video, Music } from 'lucide-react';
 import { useLanguage } from '@/lib/language-context';
 import { useGenerationStore, Generation } from '@/stores/generation-store';
 import { useCollectionsStore, Collection } from '@/stores/collections-store';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
+import {
+    GridSizeSlider,
+    GeneratingPlaceholder,
+    ImageCard,
+} from '@/components/generation';
 import {
     LibrarySidebar,
     MediaCard,
@@ -57,7 +62,8 @@ export function LibraryPage() {
     const [isFolderLoading, setIsFolderLoading] = useState(false);
     const [contentTypeFilter, setContentTypeFilter] = useState<'all' | 'image' | 'video' | 'audio'>('all');
     
-    const [gridSize, setGridSize] = useState([300]);
+    const [gridSize, setGridSize] = useState([250]);
+    const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
     const [selectedGeneration, setSelectedGeneration] = useState<Generation | null>(null);
     const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
@@ -298,169 +304,135 @@ export function LibraryPage() {
                 {/* Main Content */}
                 <main className="flex-1 space-y-8">
                     <div className="flex flex-col gap-6">
-                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                            <div className="flex items-center gap-4">
-                                {activeFolder && (
-                                    <button
-                                        onClick={() => {
-                                            setActiveFolderId(null);
-                                            setActiveCategory('all');
-                                        }}
-                                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all"
-                                    >
-                                        <ChevronLeft className="w-5 h-5" />
-                                    </button>
-                                )}
-                                
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                                 <div className="flex items-center gap-4">
-                                    <h1 className="text-3xl font-black uppercase tracking-tight">
-                                        {getCategoryLabel()}
-                                    </h1>
                                     {activeFolder && (
-                                        <div className="flex items-center gap-1">
-                                            <button
-                                                onClick={() => handleOpenRenameFolder(activeFolder.id, activeFolder.name)}
-                                                className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white/60 transition-colors"
-                                            >
-                                                <Pencil className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteFolder(activeFolder.id)}
-                                                className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-colors"
-                                            >
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex items-center gap-6 px-4 py-2 rounded-2xl">
-                                <div className="flex items-center gap-3 w-32 sm:w-48">
-                                    <Minimize2 className="w-3.5 h-3.5 text-white/20" />
-                                    <Slider
-                                        value={gridSize}
-                                        onValueChange={setGridSize}
-                                        max={600}
-                                        min={150}
-                                        step={0.1}
-                                        className="flex-1 cursor-pointer"
-                                    />
-                                    <Maximize2 className="w-3.5 h-3.5 text-white/20" />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Mobile Navigation */}
-                        <div className="flex lg:hidden flex-col gap-3 pb-2">
-                            {/* Categories Row */}
-                            <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4">
-                                <button
-                                    onClick={() => { setActiveCategory('all'); setActiveFolderId(null); }}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        activeCategory === 'all' && !activeFolderId
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {language === 'ru' ? 'Все' : 'All'}
-                                </button>
-                                <button
-                                    onClick={() => { setActiveCategory('favorites'); setActiveFolderId(null); }}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        activeCategory === 'favorites' && !activeFolderId
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {language === 'ru' ? 'Избранное' : 'Favorites'}
-                                </button>
-                                <button
-                                    onClick={() => { setActiveCategory('image'); setActiveFolderId(null); }}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        activeCategory === 'image' && !activeFolderId
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {language === 'ru' ? 'Фото' : 'Photos'}
-                                </button>
-                                <button
-                                    onClick={() => { setActiveCategory('video'); setActiveFolderId(null); }}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        activeCategory === 'video' && !activeFolderId
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {language === 'ru' ? 'Видео' : 'Video'}
-                                </button>
-                                <button
-                                    onClick={() => { setActiveCategory('audio'); setActiveFolderId(null); }}
-                                    className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                        activeCategory === 'audio' && !activeFolderId
-                                            ? 'bg-white text-black'
-                                            : 'bg-white/5 text-white/60 hover:bg-white/10'
-                                    }`}
-                                >
-                                    {language === 'ru' ? 'Аудио' : 'Audio'}
-                                </button>
-                            </div>
-
-                            {/* Folders Row */}
-                            <div className="flex overflow-x-auto no-scrollbar gap-2 -mx-4 px-4 items-center">
-                                {sidebarFolders.map((folder) => (
-                                    <div key={folder.id} className="relative flex-shrink-0">
                                         <button
-                                            onClick={() => { setActiveFolderId(folder.id); setActiveCategory('all'); }}
-                                            className={`whitespace-nowrap px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
-                                                activeFolderId === folder.id
-                                                    ? 'bg-white/10 text-white border border-white/10'
-                                                    : 'bg-transparent text-white/40 hover:text-white border border-transparent'
+                                            onClick={() => {
+                                                setActiveFolderId(null);
+                                                setActiveCategory('all');
+                                            }}
+                                            className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 hover:text-white transition-all"
+                                        >
+                                            <ChevronLeft className="w-5 h-5" />
+                                        </button>
+                                    )}
+                                    
+                                    <div className="flex items-center gap-4">
+                                        <h1 className="text-2xl md:text-3xl font-black uppercase tracking-tight">
+                                            {getCategoryLabel()}
+                                        </h1>
+                                        {activeFolder && (
+                                            <div className="flex items-center gap-1">
+                                                <button
+                                                    onClick={() => handleOpenRenameFolder(activeFolder.id, activeFolder.name)}
+                                                    className="p-2 rounded-lg hover:bg-white/5 text-white/20 hover:text-white/60 transition-colors"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteFolder(activeFolder.id)}
+                                                    className="p-2 rounded-lg hover:bg-red-500/10 text-white/20 hover:text-red-500 transition-colors"
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 sm:gap-6 overflow-x-auto no-scrollbar w-full sm:w-auto">
+                                    <div className="flex items-center gap-1.5 p-1 bg-white/5 rounded-2xl border border-white/5">
+                                        <button
+                                            onClick={() => { setActiveCategory('all'); setActiveFolderId(null); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                activeCategory === 'all' && !activeFolderId
+                                                    ? 'bg-white text-black shadow-lg shadow-black/20'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
                                             }`}
                                         >
-                                            <Folder className="w-3 h-3" />
-                                            {folder.name || (language === 'ru' ? 'Новая папка' : 'Untitled Folder')}
-                                            {activeFolderId === folder.id && (
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                        <span className="p-0.5 rounded-md hover:bg-white/10 transition-colors">
-                                                            <MoreHorizontal className="w-3 h-3" />
-                                                        </span>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end" className="w-40 bg-[#0A0A0A] border-white/10">
-                                                        <DropdownMenuItem onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            handleOpenRenameFolder(folder.id, folder.name);
-                                                        }}>
-                                                            <Pencil className="w-4 h-4 mr-2" />
-                                                            {language === 'ru' ? 'Переименовать' : 'Rename'}
-                                                        </DropdownMenuItem>
-                                                        <DropdownMenuItem 
-                                                            onClick={(e) => {
-                                                                e.stopPropagation();
-                                                                handleDeleteFolder(folder.id);
-                                                            }}
-                                                            className="text-red-500 focus:text-red-500"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 mr-2" />
-                                                            {language === 'ru' ? 'Удалить' : 'Delete'}
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            )}
+                                            {language === 'ru' ? 'Все' : 'All'}
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveCategory('favorites'); setActiveFolderId(null); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                                activeCategory === 'favorites' && !activeFolderId
+                                                    ? 'bg-white text-black shadow-lg shadow-black/20'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <Heart className={`w-3.5 h-3.5 ${activeCategory === 'favorites' && !activeFolderId ? 'fill-black' : 'fill-white'}`} />
+                                            <span className="hidden sm:inline">{language === 'ru' ? 'Избранное' : 'Favorites'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveCategory('image'); setActiveFolderId(null); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                                activeCategory === 'image' && !activeFolderId
+                                                    ? 'bg-white text-black shadow-lg shadow-black/20'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <Image className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">{language === 'ru' ? 'Фото' : 'Photos'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveCategory('video'); setActiveFolderId(null); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                                activeCategory === 'video' && !activeFolderId
+                                                    ? 'bg-white text-black shadow-lg shadow-black/20'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <Video className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">{language === 'ru' ? 'Видео' : 'Video'}</span>
+                                        </button>
+                                        <button
+                                            onClick={() => { setActiveCategory('audio'); setActiveFolderId(null); }}
+                                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                                activeCategory === 'audio' && !activeFolderId
+                                                    ? 'bg-white text-black shadow-lg shadow-black/20'
+                                                    : 'text-white/40 hover:text-white hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <Music className="w-3.5 h-3.5" />
+                                            <span className="hidden sm:inline">{language === 'ru' ? 'Аудио' : 'Audio'}</span>
                                         </button>
                                     </div>
-                                ))}
-                                
+                                    <div className="hidden sm:block w-px h-8 bg-white/10" />
+                                    <GridSizeSlider 
+                                        value={gridSize} 
+                                        onChange={setGridSize} 
+                                        min={150} 
+                                        max={600}
+                                        viewMode={viewMode}
+                                        onViewModeChange={setViewMode}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Mobile Folders Navigation - Simplified */}
+                            <div className="flex lg:hidden overflow-x-auto no-scrollbar gap-2 pb-2">
                                 <button
                                     onClick={handleOpenCreateFolder}
-                                    className="whitespace-nowrap p-1.5 rounded-lg bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all border border-white/5"
+                                    className="flex-shrink-0 p-2 rounded-xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white transition-all border border-white/5"
                                 >
-                                    <Plus className="w-3.5 h-3.5" />
+                                    <Plus className="w-4 h-4" />
                                 </button>
+                                {sidebarFolders.map((folder) => (
+                                    <button
+                                        key={folder.id}
+                                        onClick={() => { setActiveFolderId(folder.id); setActiveCategory('all'); }}
+                                        className={`whitespace-nowrap px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${
+                                            activeFolderId === folder.id
+                                                ? 'bg-white/10 text-white border border-white/10'
+                                                : 'bg-transparent text-white/40 hover:text-white border border-transparent'
+                                        }`}
+                                    >
+                                        <Folder className="w-3.5 h-3.5" />
+                                        {folder.name}
+                                    </button>
+                                ))}
                             </div>
-                        </div>
 
                         {activeFolder && folderStats && (
                             <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/5 rounded-2xl w-fit border border-white/5">
@@ -573,9 +545,13 @@ export function LibraryPage() {
                                     </h3>
 
                                     <div
-                                        className={(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) ? 'flex flex-col gap-4 max-w-5xl' : 'grid gap-4 sm:gap-6'}
+                                        className={(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) 
+                                            ? 'flex flex-col gap-4 max-w-5xl' 
+                                            : `grid gap-2 sm:gap-6 ${viewMode === 'grid' ? 'grid-cols-2 sm:grid-cols-none' : 'grid-cols-1 sm:grid-cols-none'}`}
                                         style={(activeCategory === 'audio' || (activeFolder && contentTypeFilter === 'audio')) ? {} : {
-                                            gridTemplateColumns: `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))`,
+                                            gridTemplateColumns: typeof window !== 'undefined' && window.innerWidth > 640 
+                                                ? `repeat(auto-fill, minmax(${gridSize[0]}px, 1fr))` 
+                                                : undefined,
                                         }}
                                     >
                                         {items.map((gen) => {
@@ -596,7 +572,12 @@ export function LibraryPage() {
                                                             isCurrentTrack={isCurrentTrack}
                                                             isPlaying={isCurrentTrack && isPlaying}
                                                             onClick={() => playTrack(gen, trackIdx)}
-                                                            onDownload={() => window.open(track.url, '_blank')}
+                                                            onDownload={() => {
+                                                            const link = document.createElement('a');
+                                                            link.href = track.url;
+                                                            link.download = `audio-${gen.id}.mp3`;
+                                                            link.click();
+                                                        }}
                                                         />
                                                     );
                                                 });

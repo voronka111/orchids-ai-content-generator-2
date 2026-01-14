@@ -120,7 +120,7 @@ export function ImageGenerationBar({
                             />
                         </div>
 
-                        <div className="flex items-center gap-4 w-full sm:w-auto">
+                        <div className="flex items-center justify-between w-full sm:w-auto gap-4">
                             <div className="text-sm text-muted-foreground hidden sm:block">
                                 <span className="text-[#FFDC74] font-mono flex items-center gap-2 font-black">
                                     <Zap className="w-4 h-4 fill-current" />
@@ -130,7 +130,7 @@ export function ImageGenerationBar({
                             <button
                                 onClick={onGenerate}
                                 disabled={!prompt.trim() || isGenerating}
-                                className="px-6 py-2.5 rounded-2xl bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(111,0,255,0.3)]"
+                                className="px-6 py-4 rounded-2xl bg-[#6F00FF] text-white font-black uppercase tracking-widest text-xs disabled:opacity-50 disabled:cursor-not-allowed w-[35%] sm:w-auto flex items-center justify-center hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_0_30px_rgba(111,0,255,0.3)] ml-auto"
                             >
                                 {isGenerating ? (
                                     <Loader2 className="w-4 h-4 animate-spin" />
